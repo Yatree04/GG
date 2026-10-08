@@ -1,360 +1,69 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-
-type IconName =
-  | "arrow"
-  | "bell"
-  | "box"
-  | "calendar"
-  | "check"
-  | "chevron"
-  | "garage"
-  | "grid"
-  | "phone"
-  | "plus"
-  | "search"
-  | "scan"
-  | "send"
-  | "sliders"
-  | "users"
-  | "wrench";
-
-function Icon({ name, className = "size-5" }: { name: IconName; className?: string }) {
-  const paths: Record<IconName, ReactNode> = {
-    arrow: <path d="M7 17 17 7M8 7h9v9" />,
-    bell: (
-      <>
-        <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
-        <path d="M10 21h4" />
-      </>
-    ),
-    box: (
-      <>
-        <path d="m12 3 8 4.5v9L12 21l-8-4.5v-9z" />
-        <path d="m4 7.5 8 4.5 8-4.5M12 12v9" />
-      </>
-    ),
-    calendar: (
-      <>
-        <rect x="3" y="5" width="18" height="16" rx="2" />
-        <path d="M16 3v4M8 3v4M3 10h18" />
-      </>
-    ),
-    check: <path d="m5 12 4 4L19 6" />,
-    chevron: <path d="m9 18 6-6-6-6" />,
-    garage: (
-      <>
-        <path d="m3 10 9-6 9 6v10H3z" />
-        <path d="M7 20v-7h10v7M7 16h10" />
-      </>
-    ),
-    grid: (
-      <>
-        <rect x="3" y="3" width="7" height="7" rx="1.5" />
-        <rect x="14" y="3" width="7" height="7" rx="1.5" />
-        <rect x="3" y="14" width="7" height="7" rx="1.5" />
-        <rect x="14" y="14" width="7" height="7" rx="1.5" />
-      </>
-    ),
-    phone: (
-      <path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z" />
-    ),
-    plus: <path d="M12 5v14M5 12h14" />,
-    search: (
-      <>
-        <circle cx="11" cy="11" r="7" />
-        <path d="m20 20-4-4" />
-      </>
-    ),
-    scan: <path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 12h10" />,
-    send: <path d="M21 3 3 10.5l7 2.5 2.5 7zM10 13l11-10" />,
-    sliders: <path d="M6 4v6M6 14v6M12 4v2M12 10v10M18 4v10M18 18v2M4 10h4M10 6h4M16 14h4" />,
-    users: (
-      <>
-        <circle cx="9" cy="8" r="3.5" />
-        <path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5a6.5 6.5 0 0 1 3.5 5.5" />
-      </>
-    ),
-    wrench: (
-      <path d="M14.7 6.3a4 4 0 0 0-5-5L12 3.6 9.6 6 7.3 3.7a4 4 0 0 0 5 5L4 17l3 3 8.3-8.3a4 4 0 0 0 5-5L18 9l-2.4-2.4L18 4.3z" />
-    ),
-  };
-  return (
-    <svg
-      aria-hidden="true"
-      className={className}
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="1.8"
-    >
-      {paths[name]}
-    </svg>
-  );
-}
-
-type Brand = { brand: string; qty: number };
-type Part = {
-  id: string;
-  name: string;
-  reorder: number;
-  price: number;
-  toOrder: boolean;
-  brands: Brand[];
-};
-type Item = {
-  id: string;
-  label: string;
-  kind: "service" | "part";
-  price: number;
-  approved: boolean;
-  partId?: string;
-  brand?: string;
-};
-type Job = {
-  id: string;
-  plate: string;
-  vehicle: string;
-  customer: string;
-  phone: string;
-  mechanic: string;
-  stage: string;
-  ready: string;
-  labour: number;
-  tool: number;
-  done: boolean;
-  notified: boolean;
-  items: Item[];
-};
-type Bill = {
-  id: string;
-  plate: string;
-  vehicle: string;
-  total: number;
-  method: string;
-  day: number;
-  summary: string;
-  fresh?: boolean;
-};
-type Mechanic = { id: string; name: string; role: string; wage: number; status: string };
-
-const inr = (n: number) => `₹${n.toLocaleString("en-IN")}`;
-const total = (p: Part) => p.brands.reduce((s, b) => s + b.qty, 0);
-const billTotal = (j: Job) =>
-  j.items.filter((i) => i.approved).reduce((s, i) => s + i.price, 0) + j.labour + j.tool;
-
-const initialParts: Part[] = [
-  { id: "piston", name: "Pistons", reorder: 6, price: 1850, toOrder: false, brands: [{ brand: "Bosch", qty: 5 }, { brand: "Mahle", qty: 3 }, { brand: "Hepu", qty: 2 }] },
-  { id: "pads", name: "Brake pads", reorder: 8, price: 1450, toOrder: false, brands: [{ brand: "Brembo", qty: 4 }, { brand: "Bosch", qty: 3 }] },
-  { id: "oilf", name: "Oil filters", reorder: 10, price: 320, toOrder: false, brands: [{ brand: "Mann", qty: 9 }, { brand: "Fram", qty: 7 }, { brand: "Purolator", qty: 6 }] },
-  { id: "plugs", name: "Spark plugs", reorder: 12, price: 410, toOrder: false, brands: [{ brand: "NGK", qty: 10 }, { brand: "Denso", qty: 8 }] },
-  { id: "batt", name: "Batteries", reorder: 4, price: 6200, toOrder: false, brands: [{ brand: "Exide", qty: 2 }, { brand: "Amaron", qty: 1 }] },
-  { id: "belt", name: "Timing belts", reorder: 4, price: 2300, toOrder: false, brands: [{ brand: "Gates", qty: 4 }, { brand: "Contitech", qty: 2 }] },
-  { id: "oil", name: "Engine oil (5L)", reorder: 8, price: 2150, toOrder: false, brands: [{ brand: "Castrol", qty: 7 }, { brand: "Mobil", qty: 6 }] },
-  { id: "bulb", name: "Headlight bulbs", reorder: 10, price: 380, toOrder: false, brands: [{ brand: "Philips", qty: 12 }, { brand: "Osram", qty: 9 }] },
-  { id: "clutch", name: "Clutch plates", reorder: 3, price: 4800, toOrder: false, brands: [{ brand: "Valeo", qty: 2 }] },
-];
-
-const initialJobs: Job[] = [
-  {
-    id: "j1", plate: "MH 12 QR 4821", vehicle: "Hyundai i20 · 2019", customer: "Rohan Deshmukh", phone: "+91 98220 41877",
-    mechanic: "Ajay", stage: "In work", ready: "5:00 PM", labour: 900, tool: 150, done: false, notified: false,
-    items: [
-      { id: "i1", label: "Full service + oil change", kind: "service", price: 1800, approved: true },
-      { id: "i2", label: "Oil filter · Mann", kind: "part", price: 320, approved: true, partId: "oilf", brand: "Mann" },
-      { id: "i3", label: "Engine oil 5L · Castrol", kind: "part", price: 2150, approved: true, partId: "oil", brand: "Castrol" },
-    ],
-  },
-  {
-    id: "j2", plate: "MH 14 DK 0937", vehicle: "Maruti Swift · 2016", customer: "Priya Nair", phone: "+91 97650 22314",
-    mechanic: "Imran", stage: "Inspection", ready: "6:30 PM", labour: 1200, tool: 200, done: false, notified: false,
-    items: [
-      { id: "i4", label: "Brake inspection", kind: "service", price: 400, approved: true },
-      { id: "i5", label: "Brake pads · Bosch", kind: "part", price: 1450, approved: true, partId: "pads", brand: "Bosch" },
-    ],
-  },
-  {
-    id: "j3", plate: "MH 12 AB 7710", vehicle: "Honda City · 2021", customer: "Vikram Joshi", phone: "+91 99230 55102",
-    mechanic: "Ajay", stage: "Queued", ready: "Tomorrow", labour: 700, tool: 100, done: false, notified: false,
-    items: [{ id: "i6", label: "AC gas top-up", kind: "service", price: 1500, approved: true }],
-  },
-  {
-    id: "j4", plate: "MH 20 EF 3302", vehicle: "Tata Nexon · 2022", customer: "Sana Sheikh", phone: "+91 98900 11876",
-    mechanic: "Imran", stage: "Done", ready: "Delivered", labour: 600, tool: 100, done: true, notified: true,
-    items: [{ id: "i7", label: "Wheel alignment", kind: "service", price: 800, approved: true }],
-  },
-];
-
-const initialBills: Bill[] = [
-  { id: "b1", plate: "MH 12 ZX 2208", vehicle: "Kia Seltos", total: 8450, method: "UPI", day: 7, summary: "Clutch plate, labour" },
-  { id: "b2", plate: "MH 14 PL 6619", vehicle: "Maruti Baleno", total: 3200, method: "Cash", day: 6, summary: "Full service" },
-  { id: "b3", plate: "MH 12 CD 1175", vehicle: "Toyota Innova", total: 12900, method: "UPI", day: 4, summary: "Timing belt, battery" },
-];
-
-const mechanicsSeed: Mechanic[] = [
-  { id: "m1", name: "Ajay", role: "Senior mechanic", wage: 18000, status: "On job" },
-  { id: "m2", name: "Imran", role: "Electrical & AC", wage: 16000, status: "On job" },
-  { id: "m3", name: "Sunil", role: "Helper", wage: 9000, status: "Free" },
-];
-
-const dailySeed: Record<number, { earn: number; jobs: number }> = {
-  1: { earn: 6400, jobs: 3 }, 2: { earn: 9200, jobs: 4 }, 3: { earn: 0, jobs: 0 }, 4: { earn: 12900, jobs: 2 },
-  5: { earn: 7800, jobs: 3 }, 6: { earn: 3200, jobs: 1 }, 7: { earn: 8450, jobs: 2 },
-};
-const MONTH_BASE_IN = 47950;
-const PARTS_SPEND = 18400;
-const TODAY = 8;
-
-function Seg({ options, value, onChange }: { options: string[]; value: string; onChange: (v: string) => void }) {
-  return (
-    <div className="grid rounded-xl bg-[#e9ebe5] p-1" style={{ gridTemplateColumns: `repeat(${options.length}, 1fr)` }}>
-      {options.map((o) => (
-        <button
-          key={o}
-          onClick={() => onChange(o)}
-          className={`h-9 rounded-lg text-[13px] font-semibold transition focus-visible:outline-2 focus-visible:outline-[#17211d] ${
-            value === o ? "bg-white text-[#17211d] shadow-sm" : "text-[#667069] hover:text-[#17211d]"
-          }`}
-        >
-          {o}
-        </button>
-      ))}
-    </div>
-  );
-}
+import { GarageTab } from "./GarageTab";
+import { JobsTab } from "./JobsTab";
+import { MONTH, TODAY, firstName, inr, qty } from "./model";
+import { StockTab } from "./StockTab";
+import { useGarage, type Garage, type Tab } from "./store";
+import { Icon, Label, Sheet, btn, type IconName } from "./ui";
+import { useState } from "react";
 
 export default function App() {
-  const [nav, setNav] = useState<"Stock" | "Jobs" | "My Garage">("Jobs");
-  const [parts, setParts] = useState(initialParts);
-  const [jobs, setJobs] = useState(initialJobs);
-  const [bills, setBills] = useState(initialBills);
-  const [mechanics, setMechanics] = useState(mechanicsSeed);
-  const [notice, setNotice] = useState("");
-  const noticeTimer = useRef<number | undefined>(undefined);
+  const g = useGarage();
+  const [bell, setBell] = useState(false);
+  const alerts = useAlerts(g);
 
-  const notify = (m: string) => {
-    setNotice(m);
-    window.clearTimeout(noticeTimer.current);
-    noticeTimer.current = window.setTimeout(() => setNotice(""), 2400);
-  };
-
-  const toggleOrder = (id: string) => {
-    const p = parts.find((x) => x.id === id);
-    if (!p) return;
-    setParts((ps) => ps.map((x) => (x.id === id ? { ...x, toOrder: !x.toOrder } : x)));
-    notify(p.toOrder ? `${p.name} removed from order list` : `${p.name} added to My Garage orders`);
-  };
-
-  const jobsRef = useRef(jobs);
-  jobsRef.current = jobs;
-
-  const approve = (jobId: string, itemId: string) => {
-    const item = jobsRef.current.find((j) => j.id === jobId)?.items.find((i) => i.id === itemId);
-    if (!item || item.approved) return;
-    setJobs((js) =>
-      js.map((j) =>
-        j.id !== jobId ? j : { ...j, items: j.items.map((i) => (i.id === itemId ? { ...i, approved: true } : i)) },
-      ),
-    );
-    if (item.partId) {
-      setParts((ps) =>
-        ps.map((p) =>
-          p.id !== item.partId
-            ? p
-            : { ...p, brands: p.brands.map((b) => (b.brand === item.brand && b.qty > 0 ? { ...b, qty: b.qty - 1 } : b)) },
-        ),
-      );
-    }
-    notify(`Customer approved ${item.label}`);
-  };
-
-  const addItem = (jobId: string, item: Omit<Item, "id" | "approved">) => {
-    const id = `n${Date.now()}`;
-    setJobs((js) => js.map((j) => (j.id === jobId ? { ...j, items: [...j.items, { ...item, id, approved: false }] } : j)));
-    notify("Sent to customer for approval");
-    window.setTimeout(() => approve(jobId, id), 5000);
-  };
-
-  const markDone = (jobId: string, method: string) => {
-    const j = jobs.find((x) => x.id === jobId);
-    if (!j) return;
-    setJobs((js) => js.map((x) => (x.id === jobId ? { ...x, done: true, stage: "Done", ready: "Delivered" } : x)));
-    setBills((b) => [
-      {
-        id: `b${Date.now()}`, plate: j.plate, vehicle: j.vehicle.split(" · ")[0], total: billTotal(j), method, day: TODAY, fresh: true,
-        summary: j.items.filter((i) => i.approved).slice(0, 2).map((i) => i.label.split(" · ")[0]).join(", "),
-      },
-      ...b,
-    ]);
-    notify(`Bill ${inr(billTotal(j))} logged to My Garage`);
-  };
-
-  const notifyCustomer = (jobId: string) => {
-    setJobs((js) => js.map((x) => (x.id === jobId ? { ...x, notified: true } : x)));
-    notify("Customer notified on WhatsApp");
-  };
-
-  const navItems: { label: typeof nav; icon: IconName }[] = [
-    { label: "Stock", icon: "box" },
-    { label: "Jobs", icon: "wrench" },
-    { label: "My Garage", icon: "garage" },
+  const navItems: { label: Tab; icon: IconName; badge: number }[] = [
+    { label: "Stock", icon: "box", badge: g.lowParts.filter((p) => !p.toOrder).length },
+    { label: "Jobs", icon: "wrench", badge: g.pending.length },
+    { label: "My Garage", icon: "garage", badge: g.dues.length },
   ];
 
   return (
     <main className="min-h-dvh bg-[#e9e9e4] text-[#17211d] sm:px-6 sm:py-8">
       <div className="mx-auto w-full overflow-hidden bg-[#f8f8f4] shadow-[0_24px_80px_rgba(20,30,26,0.14)] sm:max-w-[430px] sm:rounded-[40px] sm:border sm:border-black/10">
         <div className="relative flex h-dvh flex-col sm:h-[860px]">
-          <header className="shrink-0 px-6 pt-8 pb-4">
+          <header className="shrink-0 px-6 pt-7 pb-3">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="mt-1 text-[26px] leading-8 font-semibold tracking-[-0.04em]">Sharma Motors</h1>
+                <p className="text-xs font-semibold text-[#5c6660]">Thursday, {TODAY} {MONTH} · {g.tab}</p>
+                <h1 className="text-[26px] leading-8 font-semibold tracking-[-0.04em]">Sharma Motors</h1>
               </div>
               <button
-                aria-label="Notifications"
-                className="relative grid size-12 place-items-center rounded-full border border-black/10 bg-white transition hover:bg-[#f0f1ec] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#17211d]"
-                onClick={() => notify(`${parts.filter((p) => total(p) <= p.reorder).length} parts are low on stock`)}
+                aria-label={`Notifications, ${alerts.length} need attention`}
+                onClick={() => setBell(true)}
+                className={`relative grid size-12 place-items-center rounded-full border border-black/10 bg-white transition hover:bg-[#f0f1ec] ${btn.focus}`}
               >
                 <Icon name="bell" />
-                <span className="absolute top-3 right-3 size-2 rounded-full bg-[#ff715b] ring-2 ring-white" />
+                {alerts.length > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 grid min-w-5 place-items-center rounded-full bg-[#e2553f] px-1 text-[11px] font-bold text-white ring-2 ring-[#f8f8f4]">{alerts.length}</span>
+                )}
               </button>
             </div>
           </header>
 
           <div className="min-h-0 flex-1">
-            {nav === "Stock" && <StockTab parts={parts} toggleOrder={toggleOrder} />}
-            {nav === "Jobs" && (
-              <JobsTab jobs={jobs} parts={parts} addItem={addItem} markDone={markDone} notifyCustomer={notifyCustomer} notify={notify} />
-            )}
-            {nav === "My Garage" && (
-              <GarageTab
-                parts={parts} jobs={jobs} bills={bills} mechanics={mechanics}
-                toggleOrder={toggleOrder}
-                addMechanic={(m) => { setMechanics((x) => [...x, m]); notify(`${m.name} added to your team`); }}
-              />
-            )}
+            {g.tab === "Stock" && <StockTab g={g} />}
+            {g.tab === "Jobs" && <JobsTab g={g} />}
+            {g.tab === "My Garage" && <GarageTab g={g} />}
           </div>
 
           <nav aria-label="Primary navigation" className="shrink-0 border-t border-black/10 bg-[#f8f8f4] px-4 pt-2 pb-4">
             <div className="grid grid-cols-3">
-              {navItems.map(({ label, icon }) => {
-                const active = nav === label;
-                const orders = label === "My Garage" ? parts.filter((p) => p.toOrder).length : 0;
+              {navItems.map(({ label, icon, badge }) => {
+                const active = g.tab === label;
                 return (
                   <button
                     key={label}
                     aria-current={active ? "page" : undefined}
-                    onClick={() => setNav(label)}
-                    className={`flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-[11px] font-semibold transition focus-visible:outline-2 focus-visible:outline-[#17211d] ${
-                      active ? "text-[#17211d]" : "text-[#869089] hover:text-[#17211d]"
+                    aria-label={badge ? `${label}, ${badge} need attention` : label}
+                    onClick={() => g.setTab(label)}
+                    className={`flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-[12px] font-semibold transition ${btn.focus} ${
+                      active ? "text-[#17211d]" : "text-[#5c6660] hover:text-[#17211d]"
                     }`}
                   >
                     <span className={`relative grid h-8 w-14 place-items-center rounded-full transition ${active ? "bg-[#d9ff5c]" : ""}`}>
                       <Icon name={icon} />
-                      {orders > 0 && (
-                        <span className="absolute -top-1 right-1 grid size-4 place-items-center rounded-full bg-[#17211d] text-[9px] text-white">
-                          {orders}
-                        </span>
+                      {badge > 0 && (
+                        <span className="absolute -top-1 right-1 grid size-4 place-items-center rounded-full bg-[#e2553f] text-[9px] text-white">{badge}</span>
                       )}
                     </span>
                     {label}
@@ -366,720 +75,122 @@ export default function App() {
 
           <div
             aria-live="polite"
-            className={`pointer-events-none absolute right-6 bottom-24 left-6 z-20 rounded-2xl bg-[#17211d] px-4 py-3 text-center text-sm font-medium text-white shadow-xl transition-all ${
-              notice ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"
+            className={`absolute top-3 right-5 left-5 z-40 flex items-center gap-3 rounded-2xl bg-[#17211d] px-4 py-3 text-sm font-medium text-white shadow-xl transition-all ${
+              g.notice ? "translate-y-0 opacity-100" : "pointer-events-none -translate-y-2 opacity-0"
             }`}
           >
-            {notice}
+            <span className="flex-1">{g.notice?.msg}</span>
+            {g.notice?.undo && (
+              <button onClick={() => { g.notice?.undo?.(); g.setNotice(null); }} className="flex h-9 shrink-0 items-center gap-1 rounded-full px-3 font-bold text-[#d9ff5c] hover:bg-white/10">
+                <Icon name="undo" className="size-4" /> Undo
+              </button>
+            )}
           </div>
+
+          {g.billOpen && <BillSheet g={g} />}
+          {bell && <AlertsSheet alerts={alerts} onClose={() => setBell(false)} />}
         </div>
       </div>
     </main>
   );
 }
 
-/* ---------------------------------- STOCK --------------------------------- */
+/* ------------------------------ notifications ------------------------------ */
 
-function StockTab({ parts, toggleOrder }: { parts: Part[]; toggleOrder: (id: string) => void }) {
-  const [q, setQ] = useState("");
-  const [filter, setFilter] = useState<"all" | "low" | "order">("all");
-  const [open, setOpen] = useState<string | null>(null);
+type Alert = { id: string; icon: IconName; title: string; detail: string; action: string; go: () => void };
 
-  const units = parts.reduce((s, p) => s + total(p), 0);
-  const lowParts = parts.filter((p) => total(p) <= p.reorder);
-  const orderParts = parts.filter((p) => p.toOrder);
-  const value = parts.reduce((s, p) => s + total(p) * p.price, 0);
-
-  const list = useMemo(() => {
-    const s = q.trim().toLowerCase();
-    return parts.filter((p) => {
-      const matches = !s || p.name.toLowerCase().includes(s) || p.brands.some((b) => b.brand.toLowerCase().includes(s));
-      const scoped = filter === "all" || (filter === "low" ? total(p) <= p.reorder : p.toOrder);
-      return matches && scoped;
-    });
-  }, [parts, q, filter]);
-
-  const tiles: { key: "all" | "low" | "order" | "value"; label: string; value: string; icon: IconName }[] = [
-    { key: "all", label: "Total parts", value: String(units), icon: "box" },
-    { key: "low", label: "Running low", value: String(lowParts.length), icon: "bell" },
-    { key: "order", label: "To order", value: String(orderParts.length), icon: "send" },
-    { key: "value", label: "Stock value", value: inr(value), icon: "garage" },
-  ];
-
-  return (
-    <div className="flex h-full flex-col px-6">
-      <label className="relative flex h-12 shrink-0 items-center rounded-full border border-black/10 bg-white pr-4 pl-4 focus-within:border-[#17211d]">
-        <span className="sr-only">Search parts</span>
-        <Icon name="search" className="size-5 shrink-0 text-[#657069]" />
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Search pistons, brake pads, Bosch…"
-          className="h-full min-w-0 flex-1 bg-transparent px-3 text-sm font-medium outline-none placeholder:text-[#8a948d]"
-        />
-      </label>
-
-      <div className="mt-3 grid shrink-0 grid-cols-2 gap-2">
-        {tiles.map((t) => {
-          const active = t.key === "value" ? false : filter === t.key;
-          return (
-            <button
-              key={t.key}
-              aria-pressed={active}
-              onClick={() => setFilter(t.key === "value" ? "all" : t.key)}
-              className={`flex h-[108px] flex-col justify-between rounded-3xl border p-3.5 text-left transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#17211d] ${
-                active ? "border-transparent bg-[#d9ff5c]" : "border-black/10 bg-white hover:bg-[#f0f1ec]"
-              }`}
-            >
-              <span className="flex items-start justify-between">
-                <span className={`grid size-9 place-items-center rounded-xl ${active ? "bg-[#17211d]/10" : "bg-[#e9ebe5]"}`}>
-                  <Icon name={t.icon} className="size-5" />
-                </span>
-                <span className={`grid size-9 place-items-center rounded-full ${active ? "bg-[#17211d] text-[#d9ff5c]" : "bg-[#17211d] text-white"}`}>
-                  <Icon name="arrow" className="size-4" />
-                </span>
-              </span>
-              <span>
-                <span className={`block text-xs font-semibold ${active ? "text-[#17211d]/70" : "text-[#657069]"}`}>{t.label}</span>
-                <span className="block text-2xl leading-7 font-bold tracking-[-0.03em]">{t.value}</span>
-              </span>
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="mt-4 flex shrink-0 items-baseline justify-between">
-        <h2 className="text-lg font-semibold tracking-[-0.02em]">Stock overview</h2>
-      </div>
-
-      <div className="no-scrollbar mt-2 min-h-0 flex-1 space-y-2 overflow-y-auto pb-3">
-        {list.length === 0 && <p className="py-8 text-center text-sm text-[#768079]">Nothing here{q ? ` for “${q}”` : ""}.</p>}
-        {list.map((p) => {
-          const t = total(p);
-          const isLow = t <= p.reorder;
-          const isOpen = open === p.id;
-          return (
-            <div key={p.id} className="rounded-2xl border border-black/10 bg-white">
-              <button
-                aria-expanded={isOpen}
-                onClick={() => setOpen(isOpen ? null : p.id)}
-                className="flex w-full items-center gap-3 p-3 text-left focus-visible:outline-2 focus-visible:outline-[#17211d]"
-              >
-                <span className={`grid size-12 shrink-0 place-items-center rounded-xl text-lg font-bold ${isLow ? "bg-[#ffe5d7]" : "bg-[#e9ebe5]"}`}>
-                  {t}
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block text-sm font-semibold">{p.name}</span>
-                  <span className="mt-0.5 block text-xs text-[#768079]">
-                    {p.brands.length} brand{p.brands.length > 1 ? "s" : ""} · {isLow ? `low, reorder at ${p.reorder}` : inr(p.price) + " each"}
-                  </span>
-                </span>
-                {p.toOrder && <span className="rounded-full bg-[#d9ff5c] px-2 py-1 text-[10px] font-bold">TO ORDER</span>}
-                <Icon name="chevron" className={`size-4 transition ${isOpen ? "rotate-90" : ""}`} />
-              </button>
-              {isOpen && (
-                <div className="border-t border-black/10 px-3 pt-2 pb-3">
-                  {p.brands.map((b) => (
-                    <div key={b.brand} className="flex items-center justify-between py-1.5 text-sm">
-                      <span className="text-[#4c5750]">{b.brand}</span>
-                      <span className="font-semibold">{b.qty}</span>
-                    </div>
-                  ))}
-                  <button
-                    onClick={() => toggleOrder(p.id)}
-                    className={`mt-2 h-10 w-full rounded-xl text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#17211d] ${
-                      p.toOrder ? "border border-black/15 bg-white" : "bg-[#17211d] text-white hover:bg-[#25332d]"
-                    }`}
-                  >
-                    {p.toOrder ? "Remove from order list" : "Mark to order"}
-                  </button>
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
+/** One list of everything that needs the owner, each with a way to act on it. */
+function useAlerts(g: Garage): Alert[] {
+  const out: Alert[] = [];
+  g.pending.forEach(({ job, item }) => out.push({
+    id: `p${item.id}`, icon: "send", title: `${firstName(job.customer)} hasn’t replied`, detail: `${item.label} ${inr(item.price)} on ${job.plate}`, action: "Open job", go: () => g.openJob(job.id),
+  }));
+  g.active.filter((j) => j.stage === "Ready").forEach((j) => out.push({
+    id: `r${j.id}`, icon: "check", title: `${j.plate} is ready for pickup`, detail: `Take payment from ${firstName(j.customer)} and close the bill`, action: "Open job", go: () => g.openJob(j.id),
+  }));
+  const low = g.lowParts.filter((p) => !p.toOrder);
+  if (low.length) out.push({
+    id: "low", icon: "alert", title: `${low.length} part${low.length > 1 ? "s" : ""} running low`, detail: low.map((p) => `${p.name} (${qty(p)})`).join(", "), action: "See stock", go: () => g.openStock("low"),
+  });
+  const ordered = g.parts.filter((p) => p.ordered);
+  if (ordered.length) out.push({
+    id: "ord", icon: "box", title: `${ordered.length} order${ordered.length > 1 ? "s" : ""} on the way`, detail: "Tap Delivery came when it arrives", action: "Restock", go: () => g.openGarage("Restock"),
+  });
+  g.dues.forEach((b) => out.push({
+    id: `d${b.id}`, icon: "clock", title: `${inr(b.total)} due from ${firstName(b.customer)}`, detail: `${b.plate} · billed ${b.day} Oct`, action: "See bill", go: () => g.setBillOpen(b.id),
+  }));
+  return out;
 }
 
-/* ----------------------------------- JOBS --------------------------------- */
-
-function JobsTab({
-  jobs, parts, addItem, markDone, notifyCustomer, notify,
-}: {
-  jobs: Job[];
-  parts: Part[];
-  addItem: (jobId: string, item: Omit<Item, "id" | "approved">) => void;
-  markDone: (jobId: string, method: string) => void;
-  notifyCustomer: (jobId: string) => void;
-  notify: (m: string) => void;
-}) {
-  const [mini, setMini] = useState(false);
-  const [scan, setScan] = useState(false);
-  const [idx, setIdx] = useState(0);
-  const [sheet, setSheet] = useState(false);
-  const [pay, setPay] = useState("UPI");
-  const track = useRef<HTMLDivElement>(null);
-  const active = jobs.filter((j) => !j.done);
-  const cur = active[Math.min(idx, active.length - 1)];
-
-  useEffect(() => {
-    const el = track.current;
-    if (el && !mini) el.scrollTo({ left: idx * el.clientWidth });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mini, active.length]);
-
+function AlertsSheet({ alerts, onClose }: { alerts: Alert[]; onClose: () => void }) {
   return (
-    <div className="relative flex h-full flex-col">
-      <div className="mb-3 flex shrink-0 items-center justify-end gap-2 px-6">
-        <button
-          onClick={() => setScan(true)}
-          className="flex h-9 items-center gap-2 rounded-full bg-[#17211d] px-4 text-sm font-semibold text-[#d9ff5c] transition hover:bg-[#25332d] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#17211d]"
-        >
-          <Icon name="scan" className="size-4" /> Scan plate
-        </button>
-        <button
-          aria-label={mini ? "Show card stack" : "Minimise to overview"}
-          aria-pressed={mini}
-          onClick={() => setMini(!mini)}
-          className="grid size-9 place-items-center rounded-full border border-black/10 bg-white transition hover:bg-[#f0f1ec] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#17211d]"
-        >
-          <Icon name={mini ? "wrench" : "grid"} className="size-4" />
-        </button>
-      </div>
-
-      {mini ? (
-        <MiniGrid
-          jobs={jobs}
-          onOpen={(j) => {
-            setIdx(Math.max(0, active.findIndex((a) => a.id === j.id)));
-            setMini(false);
-          }}
-        />
-      ) : active.length === 0 ? (
-        <p className="px-6 py-16 text-center text-sm text-[#768079]">All jobs are done. New tickets appear here.</p>
-      ) : (
-        <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto pb-4">
-          <div
-            ref={track}
-            onScroll={(e) => {
-              const el = e.currentTarget;
-              setIdx(Math.round(el.scrollLeft / el.clientWidth));
-            }}
-            className="no-scrollbar flex snap-x snap-mandatory items-start overflow-x-auto"
-          >
-            {active.map((j) => (
-              <div key={j.id} className="w-full shrink-0 snap-center px-6">
-                <BillCard job={j} />
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-3 flex justify-center gap-1.5" aria-hidden="true">
-            {active.map((j, i) => (
-              <span key={j.id} className={`h-1.5 rounded-full transition-all ${i === idx ? "w-5 bg-[#17211d]" : "w-1.5 bg-black/20"}`} />
-            ))}
-          </div>
-
-          {cur && (
-            <div className="space-y-4 px-6 pt-4">
-              <button
-                onClick={() => setSheet(true)}
-                className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-black/25 bg-white text-sm font-semibold transition hover:bg-[#f0f1ec] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#17211d]"
-              >
-                <Icon name="plus" className="size-4" /> Add part or service
-              </button>
-
-              <div className="space-y-1 px-1 text-sm text-[#8a948d]">
-                <div className="flex justify-between"><span>Labour charges</span><span>{inr(cur.labour)}</span></div>
-                <div className="flex justify-between"><span>Tool charges</span><span>{inr(cur.tool)}</span></div>
-              </div>
-
-              <section className="rounded-2xl border border-black/10 bg-white p-4">
-                <p className="text-xs font-semibold tracking-[0.08em] text-[#657069] uppercase">Customer</p>
-                <p className="mt-1 font-semibold">{cur.customer}</p>
-                <p className="text-sm text-[#768079]">{cur.phone} · Mechanic {cur.mechanic}</p>
-              </section>
-
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => notify(`Calling ${cur.customer}…`)}
-                  className="flex h-12 items-center justify-center gap-2 rounded-2xl border border-black/10 bg-white text-sm font-semibold transition hover:bg-[#f0f1ec] focus-visible:outline-2 focus-visible:outline-[#17211d]"
-                >
-                  <Icon name="phone" className="size-4" /> Call
-                </button>
-                <button
-                  disabled={cur.notified}
-                  onClick={() => notifyCustomer(cur.id)}
-                  className="flex h-12 items-center justify-center gap-2 rounded-2xl border border-black/10 bg-white text-sm font-semibold transition hover:bg-[#f0f1ec] focus-visible:outline-2 focus-visible:outline-[#17211d] disabled:text-[#8a948d]"
-                >
-                  <Icon name={cur.notified ? "check" : "send"} className="size-4" /> {cur.notified ? "Notified" : "Notify (optional)"}
-                </button>
-              </div>
-
-              <div>
-                <p className="mb-2 text-xs font-semibold tracking-[0.08em] text-[#657069] uppercase">Payment received via</p>
-                <Seg options={["UPI", "Cash"]} value={pay} onChange={setPay} />
-              </div>
-              <button
-                disabled={cur.items.some((i) => !i.approved)}
-                onClick={() => { markDone(cur.id, pay); setIdx(0); }}
-                className="h-14 w-full rounded-2xl bg-[#17211d] text-sm font-bold text-[#d9ff5c] transition hover:bg-[#25332d] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#17211d] disabled:bg-black/10 disabled:text-[#8a948d]"
-              >
-                {cur.items.some((i) => !i.approved) ? "Waiting for customer approval" : `Mark as done · ${inr(billTotal(cur))}`}
-              </button>
-            </div>
-          )}
-        </div>
-      )}
-
-      {scan && (
-        <ScanSheet
-          jobs={jobs}
-          onClose={() => setScan(false)}
-          onMatch={(j) => {
-            setScan(false);
-            if (j.done) return notify(`${j.plate} is already billed`);
-            setIdx(Math.max(0, active.findIndex((a) => a.id === j.id)));
-            setMini(false);
-            notify(`Matched ${j.plate} · ${j.vehicle.split(" · ")[0]}`);
-          }}
-        />
-      )}
-
-      {sheet && cur && (
-        <AddSheet
-          parts={parts}
-          onClose={() => setSheet(false)}
-          onAdd={(item) => { addItem(cur.id, item); setSheet(false); }}
-        />
-      )}
-    </div>
-  );
-}
-
-const normPlate = (v: string) => v.replace(/[^a-z0-9]/gi, "").toUpperCase();
-
-function ScanSheet({ jobs, onClose, onMatch }: { jobs: Job[]; onClose: () => void; onMatch: (j: Job) => void }) {
-  const [text, setText] = useState("");
-  const [scanning, setScanning] = useState(false);
-  const [error, setError] = useState("");
-  const timer = useRef<number | undefined>(undefined);
-  const cursor = useRef(0);
-  useEffect(() => () => window.clearTimeout(timer.current), []);
-
-  const lookup = (raw: string) => {
-    const n = normPlate(raw);
-    const hit = n && jobs.find((j) => normPlate(j.plate) === n);
-    if (hit) onMatch(hit);
-    else setError(n ? `No job card found for ${raw.toUpperCase()}` : "Enter a number plate first");
-  };
-
-  const scan = () => {
-    setError("");
-    setScanning(true);
-    timer.current = window.setTimeout(() => {
-      const pool = jobs.filter((j) => !j.done);
-      const read = pool[cursor.current++ % Math.max(1, pool.length)]?.plate ?? "";
-      setScanning(false);
-      setText(read);
-      lookup(read);
-    }, 1400);
-  };
-
-  return (
-    <div className="absolute inset-0 z-10 flex flex-col justify-end bg-black/40" onClick={onClose}>
-      <div className="rounded-t-3xl bg-[#f8f8f4] p-5" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Scan number plate">
-        <div className="mb-3 flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Scan number plate</h3>
-          <button onClick={onClose} className="h-9 rounded-full px-3 text-sm font-semibold underline underline-offset-4">Close</button>
-        </div>
-
-        <div className="relative grid h-40 place-items-center overflow-hidden rounded-2xl bg-[#17211d]">
-          <div className="relative grid h-16 w-64 place-items-center rounded-lg border-2 border-[#d9ff5c]">
-            <span className="text-lg font-bold tracking-widest text-white/80">{scanning ? "READING…" : text || "— — — —"}</span>
-            {scanning && <span className="absolute inset-x-0 h-0.5 animate-[scanline_1.4s_ease-in-out_infinite] bg-[#d9ff5c]" />}
-          </div>
-          <p className="absolute bottom-2 text-[11px] text-white/50">Align the plate inside the frame</p>
-        </div>
-
-        <button
-          onClick={scan}
-          disabled={scanning}
-          className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-[#17211d] text-sm font-bold text-[#d9ff5c] transition hover:bg-[#25332d] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#17211d] disabled:opacity-60"
-        >
-          <Icon name="scan" className="size-4" /> {scanning ? "Scanning…" : "Scan plate"}
-        </button>
-
-        <div className="mt-3 flex gap-2">
-          <input
-            value={text}
-            onChange={(e) => { setText(e.target.value); setError(""); }}
-            onKeyDown={(e) => e.key === "Enter" && lookup(text)}
-            placeholder="or type MH 12 QR 4821"
-            aria-label="Number plate"
-            className="h-12 min-w-0 flex-1 rounded-2xl border border-black/10 bg-white px-4 text-sm font-semibold tracking-wide uppercase outline-none placeholder:font-medium placeholder:tracking-normal placeholder:normal-case focus:border-[#17211d]"
-          />
-          <button onClick={() => lookup(text)} className="h-12 rounded-2xl border border-black/15 bg-white px-4 text-sm font-semibold hover:bg-[#f0f1ec]">Match</button>
-        </div>
-        {error && <p role="alert" className="mt-2 text-sm font-medium text-[#c2412d]">{error}</p>}
-      </div>
-    </div>
-  );
-}
-
-function MiniGrid({ jobs, onOpen }: { jobs: Job[]; onOpen: (j: Job) => void }) {
-  return (
-    <div className="no-scrollbar grid min-h-0 flex-1 auto-rows-min grid-cols-2 content-start gap-2 overflow-y-auto px-6 pb-3">
-      {jobs.map((j) => (
-        <button
-          key={j.id}
-          disabled={j.done}
-          onClick={() => onOpen(j)}
-          className={`flex min-h-[148px] flex-col justify-between rounded-3xl border p-3.5 text-left transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#17211d] ${
-            j.done ? "border-black/10 bg-white opacity-55" : j.stage === "In work" ? "border-transparent bg-[#17211d] text-white" : "border-black/10 bg-white hover:bg-[#f0f1ec]"
-          }`}
-        >
-          <span>
-            <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-bold ${j.stage === "In work" ? "bg-[#d9ff5c] text-[#17211d]" : "bg-[#e9ebe5] text-[#4c5750]"}`}>{j.stage}</span>
-            <span className="mt-2 block text-sm leading-5 font-bold tracking-wide">{j.plate}</span>
-            <span className="block truncate text-xs opacity-60">{j.vehicle.split(" · ")[0]}</span>
-          </span>
-          <span>
-            <span className="block text-[11px] opacity-60">{j.done ? "Billed" : `Ready ${j.ready}`}</span>
-            <span className="block text-xl leading-6 font-bold tracking-[-0.02em]">{inr(billTotal(j))}</span>
-          </span>
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function BillCard({ job }: { job: Job }) {
-  const services = job.items.filter((i) => i.kind === "service");
-  const partItems = job.items.filter((i) => i.kind === "part");
-  const row = (i: Item) => (
-    <div key={i.id} className={`flex items-start justify-between gap-3 py-1.5 text-sm ${i.approved ? "" : "text-white/35"}`}>
-      <span className="min-w-0">
-        {i.label}
-        {!i.approved && <span className="ml-2 rounded-full border border-white/25 px-2 py-0.5 text-[10px] font-semibold text-white/60">Awaiting customer</span>}
-      </span>
-      <span className="shrink-0 font-semibold">{inr(i.price)}</span>
-    </div>
-  );
-  return (
-    <section className="rounded-3xl bg-[#17211d] p-5 text-white">
-      <div className="flex items-start justify-between">
-        <div>
-          <span className="inline-flex items-center gap-2 rounded-full bg-[#d9ff5c] px-3 py-1 text-xs font-bold text-[#17211d]">
-            <span className="size-1.5 rounded-full bg-[#17211d]" />
-            {job.stage.toUpperCase()}
-          </span>
-          <h2 className="mt-3 text-[26px] leading-8 font-bold tracking-[0.02em]">{job.plate}</h2>
-          <p className="mt-0.5 text-sm text-white/60">{job.vehicle}</p>
-        </div>
-        <div className="text-right">
-          <p className="text-xs text-white/50">Ready by</p>
-          <p className="mt-0.5 text-sm font-semibold">{job.ready}</p>
-        </div>
-      </div>
-
-      <div className="mt-5 border-t border-white/10 pt-3">
-        <p className="text-xs font-semibold tracking-[0.08em] text-white/50 uppercase">Services</p>
-        {services.length ? services.map(row) : <p className="py-1.5 text-sm text-white/35">No services yet</p>}
-        <p className="mt-3 text-xs font-semibold tracking-[0.08em] text-white/50 uppercase">Parts</p>
-        {partItems.length ? partItems.map(row) : <p className="py-1.5 text-sm text-white/35">No parts yet</p>}
-      </div>
-
-      <div className="mt-3 flex items-end justify-between border-t border-white/10 pt-3">
-        <p className="text-xs font-semibold tracking-[0.08em] text-white/50 uppercase">Estimate</p>
-        <p className="text-2xl font-bold tracking-[-0.02em] text-[#d9ff5c]">{inr(billTotal(job))}</p>
-      </div>
-    </section>
-  );
-}
-
-function AddSheet({
-  parts, onClose, onAdd,
-}: {
-  parts: Part[];
-  onClose: () => void;
-  onAdd: (item: Omit<Item, "id" | "approved">) => void;
-}) {
-  const extras = [
-    { label: "Wheel alignment", price: 800 },
-    { label: "AC gas top-up", price: 1500 },
-    { label: "Battery terminal clean", price: 250 },
-  ];
-  return (
-    <div className="absolute inset-0 z-10 flex flex-col justify-end bg-black/40" onClick={onClose}>
-      <div className="max-h-[75%] overflow-hidden rounded-t-3xl bg-[#f8f8f4] p-5" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Add part or service">
-        <div className="mb-3 flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Add to this bill</h3>
-          <button onClick={onClose} className="h-9 rounded-full px-3 text-sm font-semibold underline underline-offset-4">Close</button>
-        </div>
-        <p className="mb-3 text-xs text-[#768079]">Items stay greyed out until the customer approves on WhatsApp.</p>
-        <div className="no-scrollbar max-h-[46dvh] space-y-2 overflow-y-auto">
-          {parts.map((p) => {
-            const best = [...p.brands].sort((a, b) => b.qty - a.qty)[0];
-            const out = total(p) === 0;
-            return (
-              <button
-                key={p.id}
-                disabled={out}
-                onClick={() => onAdd({ label: `${p.name.replace(/s$/, "")} · ${best.brand}`, kind: "part", price: p.price, partId: p.id, brand: best.brand })}
-                className="flex w-full items-center justify-between rounded-xl border border-black/10 bg-white p-3 text-left text-sm transition hover:bg-[#f0f1ec] disabled:opacity-40"
-              >
-                <span><span className="block font-semibold">{p.name}</span><span className="text-xs text-[#768079]">{total(p)} in stock</span></span>
-                <span className="font-semibold">{inr(p.price)}</span>
-              </button>
-            );
-          })}
-          {extras.map((e) => (
-            <button
-              key={e.label}
-              onClick={() => onAdd({ label: e.label, kind: "service", price: e.price })}
-              className="flex w-full items-center justify-between rounded-xl border border-black/10 bg-white p-3 text-left text-sm transition hover:bg-[#f0f1ec]"
-            >
-              <span className="font-semibold">{e.label}</span>
-              <span className="font-semibold">{inr(e.price)}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* -------------------------------- MY GARAGE ------------------------------- */
-
-function GarageTab({
-  parts, jobs, bills, mechanics, toggleOrder, addMechanic,
-}: {
-  parts: Part[];
-  jobs: Job[];
-  bills: Bill[];
-  mechanics: Mechanic[];
-  toggleOrder: (id: string) => void;
-  addMechanic: (m: Mechanic) => void;
-}) {
-  const [anchor, setAnchor] = useState(TODAY);
-  const [picked, setPicked] = useState(false);
-  const [expanded, setExpanded] = useState(false);
-
-  const loggedToday = bills.filter((b) => b.fresh);
-  const todayIn = loggedToday.reduce((s, b) => s + b.total, 0);
-  const wagesMonth = mechanics.reduce((s, m) => s + m.wage, 0);
-  const toOrder = parts.filter((p) => p.toOrder);
-  const restockDays = [10, 24];
-
-  const dayData = (d: number) => {
-    if (d === TODAY) return { earn: todayIn, jobs: loggedToday.length + jobs.filter((j) => !j.done).length };
-    if (d > TODAY) return { earn: 0, jobs: 0 };
-    return dailySeed[d] ?? { earn: 0, jobs: 0 };
-  };
-  const weekday = (d: number) => new Date(2026, 9, d).getDay();
-  const monday = anchor - ((weekday(anchor) + 6) % 7);
-  const weekDays = Array.from({ length: 7 }, (_, i) => monday + i).filter((d) => d >= 1 && d <= 31);
-  const monthDays = Array.from({ length: 31 }, (_, i) => i + 1);
-  const offset = (weekday(1) + 6) % 7;
-
-  const scope = picked ? "day" : expanded ? "month" : "week";
-  const range = scope === "day" ? [anchor] : scope === "week" ? weekDays : monthDays;
-  const label = scope === "day" ? `${anchor} Oct` : scope === "week" ? `${weekDays[0]}–${weekDays[weekDays.length - 1]} Oct` : "October 2026";
-  const earned = range.reduce((s, d) => s + dayData(d).earn, 0);
-  const jobCount = range.reduce((s, d) => s + dayData(d).jobs, 0);
-  const share = range.filter((d) => d <= TODAY).length / TODAY;
-  const partsCost = Math.round(PARTS_SPEND * (scope === "month" ? 1 : share * (TODAY / 31)) );
-  const wages = Math.round(wagesMonth * (range.length / 31));
-  const profit = earned - partsCost - wages;
-  const rangeBills = bills.filter((b) => range.includes(b.day));
-  const rangeRestock = range.filter((d) => restockDays.includes(d));
-
-  const pick = (d: number) => { setAnchor(d); setPicked(true); };
-  const shift = (n: number) => { setAnchor((a) => Math.min(31, Math.max(1, a + n))); setPicked(false); };
-
-  const dayCell = (d: number, big: boolean) => {
-    const sel = picked && d === anchor;
-    const data = dayData(d);
-    return (
-      <button
-        key={d}
-        aria-label={`${d} October`}
-        aria-pressed={sel}
-        onClick={() => pick(d)}
-        className={`flex flex-col items-center rounded-2xl border transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#17211d] ${
-          big ? "px-1 pt-2.5 pb-2" : "h-11 justify-center"
-        } ${sel ? "border-transparent bg-[#17211d] text-white" : d === TODAY ? "border-transparent bg-[#d9ff5c]" : "border-black/10 bg-white hover:bg-[#f0f1ec]"} ${d > TODAY && !sel ? "text-[#8a948d]" : ""}`}
-      >
-        <span className={`${big ? "text-lg leading-6" : "text-sm"} font-bold`}>{d}</span>
-        {big && <span className={`text-[11px] font-semibold ${sel ? "text-white/70" : "text-[#657069]"}`}>{WEEKDAYS[weekday(d)]}</span>}
-        <span className={`flex h-1.5 gap-1 ${big ? "mt-1.5" : "mt-0.5"}`}>
-          {data.earn > 0 && <span className={`size-1.5 rounded-full ${sel ? "bg-[#d9ff5c]" : "bg-[#3d7a00]"}`} />}
-          {restockDays.includes(d) && <span className="size-1.5 rounded-full bg-[#ff715b]" />}
-        </span>
-      </button>
-    );
-  };
-
-  return (
-    <div className="flex h-full flex-col px-6">
-      <div className="shrink-0">
-        <div className="mb-2 flex items-center justify-between">
-          <button
-            onClick={() => setPicked(false)}
-            className="text-left focus-visible:outline-2 focus-visible:outline-[#17211d]"
-            aria-label="Show whole range"
-          >
-            <span className="block text-[11px] font-semibold tracking-[0.08em] text-[#657069] uppercase">{scope}</span>
-            <span className="block text-lg font-semibold tracking-[-0.02em]">{label}</span>
-          </button>
-          <div className="flex items-center gap-1">
-            {!expanded && (
-              <>
-                <button aria-label="Previous week" onClick={() => shift(-7)} className="grid size-9 rotate-180 place-items-center rounded-full border border-black/10 bg-white"><Icon name="chevron" className="size-4" /></button>
-                <button aria-label="Next week" onClick={() => shift(7)} className="grid size-9 place-items-center rounded-full border border-black/10 bg-white"><Icon name="chevron" className="size-4" /></button>
-              </>
-            )}
-            <button
-              aria-label={expanded ? "Collapse to week" : "Expand to full month"}
-              aria-expanded={expanded}
-              onClick={() => { setExpanded(!expanded); setPicked(false); }}
-              className="grid size-9 place-items-center rounded-full bg-[#17211d] text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#17211d]"
-            >
-              <Icon name="chevron" className={`size-4 transition ${expanded ? "-rotate-90" : "rotate-90"}`} />
-            </button>
-          </div>
-        </div>
-
-        {expanded ? (
-          <div>
-            <div className="mb-1 grid grid-cols-7 gap-1 text-center text-[11px] font-semibold text-[#8a948d]">
-              {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => <span key={i}>{d}</span>)}
-            </div>
-            <div className="grid grid-cols-7 gap-1">
-              {Array.from({ length: offset }).map((_, i) => <span key={`e${i}`} />)}
-              {monthDays.map((d) => dayCell(d, false))}
-            </div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-7 gap-1">{weekDays.map((d) => dayCell(d, true))}</div>
-        )}
-      </div>
-
-      <div className="no-scrollbar mt-3 min-h-0 flex-1 space-y-3 overflow-y-auto pb-3">
-        <section className="rounded-3xl bg-[#17211d] p-4 text-white">
-          <p className="text-xs font-semibold tracking-[0.08em] text-white/50 uppercase">Profit · {label}</p>
-          <p className="mt-1 text-3xl font-bold tracking-[-0.03em] text-[#d9ff5c]">{inr(profit)}</p>
-          <div className="mt-3 grid grid-cols-4 gap-2 text-sm">
-            {([["In", inr(earned)], ["Parts", inr(partsCost)], ["Wages", inr(wages)], ["Jobs", String(jobCount)]] as const).map(([l, v]) => (
-              <div key={l} className="rounded-xl bg-white/10 p-2.5">
-                <p className="text-[11px] text-white/55">{l}</p>
-                <p className="mt-0.5 text-[13px] font-semibold">{v}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section>
-          <h2 className="mb-2 text-sm font-semibold">Bills & services</h2>
-          {rangeBills.length === 0 ? (
-            <p className="rounded-2xl border border-black/10 bg-white p-4 text-sm text-[#768079]">No bills logged for {label}.</p>
-          ) : (
-            <div className="space-y-2">
-              {rangeBills.map((b) => (
-                <div key={b.id} className="flex items-center gap-3 rounded-2xl border border-black/10 bg-white p-3">
-                  <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-[#e9ebe5]"><Icon name="wrench" /></span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-sm font-semibold">{b.plate}</span>
-                    <span className="block truncate text-xs text-[#768079]">{b.vehicle} · {b.summary}</span>
-                  </span>
-                  <span className="text-right">
-                    <span className="block text-sm font-semibold">{inr(b.total)}</span>
-                    <span className="block text-[11px] text-[#768079]">{b.day} Oct · {b.method}</span>
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-
-        <section className="rounded-2xl border border-black/10 bg-white p-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold">Restock</h2>
-            <span className="text-xs text-[#768079]">{rangeRestock.length ? `Due ${rangeRestock.join(", ")} Oct` : "No restock day"}</span>
-          </div>
-          {toOrder.length === 0 ? (
-            <p className="mt-2 text-sm text-[#768079]">Nothing marked. Low: {parts.filter((p) => total(p) <= p.reorder).map((p) => p.name).slice(0, 3).join(", ")}.</p>
-          ) : (
-            toOrder.map((p) => (
-              <div key={p.id} className="mt-2 flex items-center justify-between border-t border-black/10 pt-2">
-                <span className="text-sm"><span className="font-semibold">{p.name}</span> <span className="text-[#768079]">· {total(p)} left</span></span>
-                <button onClick={() => toggleOrder(p.id)} className="text-xs font-semibold underline underline-offset-4">Ordered</button>
-              </div>
-            ))
-          )}
-        </section>
-
-        <section>
-          <h2 className="mb-2 text-sm font-semibold">Team</h2>
-          <TeamList mechanics={mechanics} jobs={jobs} addMechanic={addMechanic} />
-        </section>
-      </div>
-    </div>
-  );
-}
-
-function TeamList({ mechanics, jobs, addMechanic }: { mechanics: Mechanic[]; jobs: Job[]; addMechanic: (m: Mechanic) => void }) {
-  const [adding, setAdding] = useState(false);
-  const [name, setName] = useState("");
-  const submit = () => {
-    if (!name.trim()) return;
-    addMechanic({ id: `m${Date.now()}`, name: name.trim(), role: "Mechanic", wage: 12000, status: "Free" });
-    setName("");
-    setAdding(false);
-  };
-  return (
-    <div className="space-y-2">
-      {mechanics.map((m) => {
-        const j = jobs.find((x) => x.mechanic === m.name && !x.done);
-        return (
-          <div key={m.id} className="flex items-center gap-3 rounded-2xl border border-black/10 bg-white p-3">
-            <span className="grid size-12 shrink-0 place-items-center rounded-full bg-[#e9ebe5] text-base font-bold">{m.name[0]}</span>
+    <Sheet title="Needs your attention" onClose={onClose}>
+      {alerts.length === 0 && <p className="py-6 text-center text-sm text-[#5c6660]">All clear. Nothing is waiting on you.</p>}
+      <div className="space-y-2">
+        {alerts.map((a) => (
+          <button key={a.id} onClick={() => { onClose(); a.go(); }} className={`flex w-full items-center gap-3 rounded-2xl border border-black/10 bg-white p-3 text-left hover:bg-[#f0f1ec] ${btn.focus}`}>
+            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#e9ebe5]"><Icon name={a.icon} className="size-4" /></span>
             <span className="min-w-0 flex-1">
-              <span className="block text-sm font-semibold">{m.name}</span>
-              <span className="block truncate text-xs text-[#768079]">{m.role} · {j ? j.plate : "No job"}</span>
+              <span className="block text-sm font-semibold">{a.title}</span>
+              <span className="block text-xs text-[#5c6660]">{a.detail}</span>
             </span>
-            <span className="text-right">
-              <span className="block text-sm font-semibold">{inr(m.wage)}</span>
-              <span className={`block text-[11px] font-semibold ${j ? "text-[#3d7a00]" : "text-[#768079]"}`}>{j ? "On job" : "Free"}</span>
-            </span>
-          </div>
-        );
-      })}
-      {adding ? (
-        <div className="flex gap-2">
-          <input
-            autoFocus
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && submit()}
-            placeholder="Mechanic name"
-            className="h-12 min-w-0 flex-1 rounded-2xl border border-black/10 bg-white px-4 text-sm outline-none focus:border-[#17211d]"
-          />
-          <button onClick={submit} className="h-12 rounded-2xl bg-[#17211d] px-5 text-sm font-semibold text-white">Add</button>
-        </div>
-      ) : (
-        <button
-          onClick={() => setAdding(true)}
-          className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-black/25 text-sm font-semibold transition hover:bg-white focus-visible:outline-2 focus-visible:outline-[#17211d]"
-        >
-          <Icon name="users" className="size-4" /> Add mechanic
-        </button>
-      )}
-    </div>
+            <span className="flex shrink-0 items-center gap-0.5 text-xs font-semibold">{a.action} <Icon name="chevron" className="size-3.5" /></span>
+          </button>
+        ))}
+      </div>
+    </Sheet>
   );
 }
 
-const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+/* ---------------------------------- bill ---------------------------------- */
+
+function BillSheet({ g }: { g: Garage }) {
+  const b = g.bills.find((x) => x.id === g.billOpen);
+  if (!b) return null;
+  const close = () => g.setBillOpen(null);
+  const job = b.jobId ? g.jobs.find((j) => j.id === b.jobId) : undefined;
+  return (
+    <Sheet
+      title={`Bill · ${b.plate}`}
+      onClose={close}
+      footer={b.method === "Due" ? (
+        <div className="space-y-2">
+          <Label>{firstName(b.customer)} paid now by</Label>
+          <div className="grid grid-cols-2 gap-2">
+            <button onClick={() => g.collect(b.id, "UPI")} className={`${btn.primary} h-12`}>UPI</button>
+            <button onClick={() => g.collect(b.id, "Cash")} className={`${btn.primary} h-12`}>Cash</button>
+          </div>
+        </div>
+      ) : (
+        <button onClick={() => g.notify(`Bill sent again to ${firstName(b.customer)} on WhatsApp`)} className={`${btn.secondary} w-full`}><Icon name="send" className="size-4" /> Send bill again on WhatsApp</button>
+      )}
+    >
+      <div className="rounded-2xl bg-[#17211d] p-4 text-white">
+        <div className="flex justify-between gap-3">
+          <div>
+            <p className="text-lg font-bold tracking-wide">{b.plate}</p>
+            <p className="text-sm text-white/65">{b.vehicle} · {b.customer}</p>
+          </div>
+          <span className={`h-fit rounded-full px-2.5 py-1 text-xs font-bold ${b.method === "Due" ? "bg-[#ffe5d7] text-[#9a3412]" : "bg-[#d9ff5c] text-[#17211d]"}`}>
+            {b.method === "Due" ? "DUE" : `PAID · ${b.method}`}
+          </span>
+        </div>
+        <div className="mt-3 space-y-1 border-t border-white/10 pt-3 text-sm">
+          {b.lines.map((l, i) => <div key={i} className="flex justify-between gap-3"><span className="text-white/85">{l.label}</span><span className="font-semibold">{inr(l.price)}</span></div>)}
+        </div>
+        <div className="mt-3 flex items-end justify-between border-t border-white/10 pt-3">
+          <Label dark>Total · {b.day} Oct</Label>
+          <p className="text-2xl font-bold text-[#d9ff5c]">{inr(b.total)}</p>
+        </div>
+      </div>
+      {job && (
+        <div className="mt-4">
+          <Label>What happened</Label>
+          <ol className="mt-1.5 space-y-1.5">
+            {job.log.slice(0, 5).map((e, i) => <li key={i} className="flex gap-2 text-[13px]"><span className="w-16 shrink-0 text-[#5c6660]">{e.time}</span><span>{e.text}</span></li>)}
+          </ol>
+        </div>
+      )}
+    </Sheet>
+  );
+}
