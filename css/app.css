@@ -54,7 +54,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .ibtn:hover{background:color-mix(in srgb,var(--on-surface) 8%,transparent)}
 .ibtn.plus{background:var(--accent);color:var(--on-accent);width:44px;height:44px;border-radius:22px;margin:0 6px}
 .ibtn .dot{position:absolute;top:10px;right:10px;width:8px;height:8px;border-radius:4px;background:var(--error)}
-.body{flex:1;overflow-y:auto;overflow-x:hidden;padding:4px 16px 104px;display:flex;flex-direction:column;gap:12px}
+.body{flex:1;overflow-y:auto;overflow-x:hidden;padding:4px 16px 124px;display:flex;flex-direction:column;gap:12px}
 .body.nonav{padding-bottom:110px}
 .body>*{flex-shrink:0}
 .navbar{position:absolute;left:0;right:0;bottom:0;height:80px;background:var(--surface-c);display:flex;z-index:4}
@@ -63,8 +63,6 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .navbar button[aria-current="page"]{color:var(--on-surface)}
 .navbar button[aria-current="page"] .pill{background:var(--secondary-container);color:var(--on-secondary-container)}
 .navbar .badge{position:absolute;top:10px;left:calc(50% + 10px);min-width:18px;height:18px;border-radius:9px;background:var(--error);color:var(--on-error);font-size:11px;font-weight:700;display:grid;place-items:center;padding:0 5px}
-.fab{position:absolute;right:16px;bottom:96px;height:var(--touch);padding:0 22px 0 18px;border-radius:28px;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px;box-shadow:0 3px 8px rgb(0 0 0 / .18);z-index:3}
-.fab .ms{font-size:26px}
 .actionbar{position:absolute;left:0;right:0;bottom:0;padding:12px 16px 18px;background:var(--surface-c);display:flex;gap:10px;z-index:4}
 .actionbar .btn{flex:1}
 
@@ -139,7 +137,7 @@ button.li:hover{background:var(--surface-c)}
 .seg button:first-child{border-left:0}
 .seg button[aria-pressed="true"]{background:var(--primary);color:var(--on-primary)}
 .seg .ms{font-size:18px}
-.snack{position:absolute;left:12px;right:12px;bottom:92px;background:var(--inverse-surface);color:var(--inverse-on);border-radius:8px;padding:12px 16px;line-height:1.4;z-index:20;box-shadow:0 4px 12px rgb(0 0 0 / .25)}
+.snack{position:absolute;left:12px;right:12px;bottom:118px;background:var(--inverse-surface);color:var(--inverse-on);border-radius:8px;padding:12px 16px;line-height:1.4;z-index:20;box-shadow:0 4px 12px rgb(0 0 0 / .25)}
 .scrim{position:absolute;inset:0;background:rgb(0 0 0 / .32);z-index:9}
 .sheet{position:absolute;left:0;right:0;bottom:0;max-height:88%;background:var(--surface-low);border-radius:28px 28px 0 0;z-index:10;display:flex;flex-direction:column}
 .sheet .handle{width:32px;height:4px;border-radius:2px;background:var(--outline);margin:12px auto 4px;flex:none}
@@ -203,3 +201,49 @@ button.li:hover{background:var(--surface-c)}
 .check[aria-checked="true"]{background:var(--primary);border-color:var(--primary);color:var(--on-primary)}
 .check .ms{font-size:18px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* ---------- 3-item bottom bar: Ongoing · Scan · Vehicles ---------- */
+.navbar{align-items:stretch}
+.navbar .scanbtn{flex:none;width:96px;justify-content:flex-start;gap:4px;color:var(--on-surface);font-weight:600}
+.navbar .scanbtn .ring{width:68px;height:68px;border-radius:34px;margin-top:-26px;background:var(--accent);color:var(--on-accent);display:grid;place-items:center;box-shadow:0 0 0 6px var(--surface-c),0 4px 12px rgb(0 0 0 / .2)}
+.navbar .scanbtn .ms{font-size:32px;max-width:none}
+.navbar .scanbtn[aria-current="page"] .ring{box-shadow:0 0 0 6px var(--surface-c),0 0 0 9px var(--primary)}
+.cam.withnav{padding-bottom:100px}
+
+/* garage menu (top right) */
+.ibtn.me .avatar{width:40px;height:40px;border-radius:20px;background:var(--surface-c);border:1.5px solid var(--on-surface);color:var(--on-surface)}
+.ibtn.me .dot{top:6px;right:6px}
+.ibtn.sm{width:36px;height:36px}
+.card.alert{text-align:left}
+
+/* ---------- job card (wireframe) ---------- */
+.jhead{display:flex;align-items:center;gap:12px;margin-top:-6px}
+.jt{font-family:var(--display);font-size:26px;font-weight:800;letter-spacing:-.01em;margin:0;line-height:1.15;text-wrap:balance}
+.bill{background:var(--surface);border:1.5px solid var(--outline-var);border-radius:20px;padding:12px 16px 4px}
+.bill-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding-bottom:10px;border-bottom:1.5px solid var(--on-surface);font-weight:600}
+.bline{display:flex;align-items:center;gap:8px;min-height:48px;padding:8px 0}
+.bline+.bline{border-top:1px solid var(--outline-var)}
+.bline .amt{font-variant-numeric:tabular-nums;font-weight:500;white-space:nowrap}
+.bline.pending .nm,.bline.pending .amt{opacity:.45}
+.bline.declined .nm,.bline.declined .amt{text-decoration:line-through;opacity:.5}
+.bline.total .nm,.bline.total .amt{font-size:17px;font-weight:700}
+.addmore{display:flex;align-items:center;gap:10px;min-height:52px;padding:0 16px;border-radius:14px;border:1.5px solid var(--outline);background:var(--surface);font-weight:600;width:100%}
+.addmore:hover{background:var(--surface-c)}
+.charges{border-top:1.5px solid var(--outline-var);padding:0 4px}
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.act{min-height:100px;border-radius:20px;background:var(--surface-low);border:1.5px solid var(--outline-var);padding:14px;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;gap:8px;text-align:left}
+.act:hover{background:var(--surface-c)}
+.act .ms{font-size:28px;max-width:none}
+.act .al{display:block;font-weight:700;font-size:15px}
+.act .as{display:block;font-size:12px;color:var(--on-surface-var);margin-top:2px}
+.act.primary{background:var(--accent);color:var(--on-accent);border-color:transparent}
+.act.primary .as{color:var(--on-accent);opacity:.8}
+
+/* ---------- app-only preview (preview.html) ---------- */
+.solo .wrap{padding-block:24px}
+.solo .stage{grid-template-columns:380px}
+@media (max-width:520px){
+  .solo .wrap{padding:0}
+  .solo .device{max-width:none;width:100%;height:100dvh;min-height:0;border-radius:0;padding:0;box-shadow:none}
+  .solo .screen{border-radius:0}
+}

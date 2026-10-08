@@ -15,35 +15,43 @@ No build step. Open `index.html` in a browser, or serve the folder:
 npx serve .        # or: python3 -m http.server
 ```
 
-To make a single self-contained HTML file (used for the published Claude artifact):
+To make single self-contained HTML files (used for the published Claude artifacts):
 
 ```bash
-python3 scripts/bundle.py   # writes dist/garage.html
+python3 scripts/bundle.py   # writes dist/garage.html (with demo panel) and dist/preview.html (app only)
 ```
+
+`preview.html` is the garage app on its own, with no demo panel. Its bundle is published as the always-on preview artifact; republish `dist/preview.html` after each change.
 
 ## What's in the app
 
-The bottom navigation has three tabs.
+The bottom bar has three things only. Everything the owner looks at now and then sits behind the **JJ circle** (top right).
 
-| Tab | What it does |
+| Bottom bar | What it does |
 |---|---|
-| **Tracking** | Job board with Waiting / In work / Ready tabs. Also shows WhatsApp tickets for customers who haven't arrived yet. The **Scan plate** button starts a job. |
-| **Vehicles** | Every saved vehicle. Search it, or filter to *in garage now* or *due for service*. Each vehicle has a detail page with the owner, a "jo theek lage" (skip approvals) toggle, visits, total spent, next service, a history timeline, and buttons to start a job or send a reminder. |
-| **Stock** | Parts counted in pieces and small parts counted in boxes, with restock alerts and today's stock movement. Tap any item to add stock or change its restock level. |
+| **Ongoing** | Vehicles in the garage today: Waiting / In work / Ready, plus WhatsApp tickets for customers who haven't arrived yet. A restock alert shows here when stock runs low. |
+| **Scan** (big, centre) | Scan the number plate to link the job card to the vehicle standing in front of you. A known plate opens its job card, and a new plate starts onboarding. |
+| **Vehicles** | Every saved vehicle. Search it, or filter to *in garage now* or *due for service*. Each vehicle has a detail page with the owner, a "jo theek lage" (skip approvals) toggle, visits, total spent, next service, history, and buttons to start a job or send a reminder. |
 
-- **+ (top left)** is onboarding. It has three options:
-  - add a new customer and vehicle in 3 steps (scan plate → details → WhatsApp welcome)
-  - invite saved phone contacts with one message
-  - the garage QR poster
-- **Wallet icon (top right)** opens **Hisaab**: profit this month, worked out from bills, parts used, wages and expenses, plus a transaction history.
-- **Settings:** the approval limit, the rate card, mechanics and language.
+- **+ (top left)** is onboarding: new customer and vehicle in 3 steps, invite saved phone contacts, or the garage QR poster.
+- **JJ circle (top right)** is the garage menu:
+  - **Stock**: parts in pieces, small parts in boxes, restock alerts
+  - **Hisaab**: monthly profit and transactions
+  - **Settings**: approval limit, rate card, mechanics, language
+
+**Job card** (follows the team's wireframe), top to bottom:
+1. Vehicle name and plate.
+2. **Billing**: the parts.
+3. **+ Add more · notify**: adds a service or part and sends the customer the new total.
+4. **Minimal tool charges** and **Labour charges**, then the total.
+5. Four big tiles: the next step (Send estimate → Start work → Mark done → Record payment), Call, History, and who and when (or Remind to collect once it's ready).
 
 **What happens in a job:**
 1. Scan the plate.
-2. The customer's WhatsApp message and likely services are filled in.
+2. The job card opens. The customer's WhatsApp message and likely services are filled in.
 3. Agree the work face to face, then send the estimate.
-4. Pick the mechanic and the ready-by time, then start.
-5. **Add item** for anything found during work. Parts above the limit stay greyed out until the customer replies.
+4. Start work. The fourth tile changes the mechanic and the ready-by time.
+5. **Add more** for anything found during work. Parts above the limit stay greyed out until the customer replies.
 6. **Mark done.** The bill is created and sent, and stock is deducted.
 7. Record payment. It goes into Hisaab and the vehicle's history.
 
@@ -53,11 +61,12 @@ The **customer side is not designed yet**. The panel next to the phone stands in
 
 ```
 index.html        page shell (phone frame + demo panel)
+preview.html      page shell (garage app only)
 css/tokens.css    design tokens — swap these to restyle everything
 css/app.css       components (buttons, chips, lists, sheets, nav…)
 js/data.js        sample data: rate card, parts, vehicles, stock, ledger
 js/app.js         state, actions, views (plain JS, no framework)
-scripts/bundle.py builds dist/garage.html (single file)
+scripts/bundle.py builds dist/garage.html and dist/preview.html (single files)
 ```
 
 ## Design system

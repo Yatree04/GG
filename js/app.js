@@ -40,7 +40,9 @@ function alertsCount() { return Object.values(S.stock).filter(function (s) { ret
 function pendingItems() { var out = []; S.jobs.forEach(function (j) { j.items.forEach(function (it) { if (it.appr === 'pending') out.push({ j: j, it: it }); }); }); return out; }
 
 /* ---------- navigation ---------- */
-var MAIN = ['track', 'vehicles', 'stock'];
+/* Bottom bar has three things: Ongoing, Scan, Vehicles. Stock, Hisaab and Settings
+   are monthly-ish, so they live behind the garage menu (top right). */
+var SECTION = { track: 'track', job: 'track', scan: 'scan', vehicles: 'vehicles', vehicle: 'vehicles' };
 function go(view, extra) { S.back.push({ view: S.view, jobId: S.jobId, vehId: S.vehId }); S.view = view; Object.assign(S, extra || {}); S.sheet = null; }
 function goRoot(view) { S.back = []; S.view = view; S.jobId = null; S.vehId = null; S.sheet = null; }
 
@@ -51,9 +53,11 @@ var A = {
   tab: function (d) { S.tab = d.v; render(); },
   back: function () { var b = S.back.pop(); if (!b) { goRoot('track'); } else { S.view = b.view; S.jobId = b.jobId; S.vehId = b.vehId; } S.sheet = null; render(); },
   plus: function () { S.sheet = { type: 'plus' }; render(); },
+  menu: function () { S.sheet = { type: 'menu' }; render(); },
   hisaab: function () { go('hisaab'); render(); },
+  stock: function () { go('stock'); render(); },
   settings: function () { go('settings'); render(); },
-  scan: function () { go('scan'); render(); },
+  scan: function () { goRoot('scan'); render(); },
   plate: function (d) { handlePlate(d.v); },
   openJob: function (d) { go('job', { jobId: d.v }); render(); },
   openVeh: function (d) { go('vehicle', { vehId: d.v }); render(); },
@@ -95,18 +99,29 @@ var A = {
     snack('Started. ' + first(custOf(j).name) + ' got a status update — no need to call.'); mark('start'); render();
   },
   openAdd: function () { S.sheet = { type: 'add', sel: null, reason: 'Worn out' }; render(); },
+  crew: function () { S.sheet = { type: 'crew' }; render(); },
+  rmSvc: function (d) { var j = job(S.jobId); j.items = j.items.filter(function (i) { return i.svc !== d.v; }); j.services = j.services.filter(function (k) { return k !== d.v; }); render(); },
+  remindCollect: function () { var j = job(S.jobId); send(veh(j.plate).cust, 'Reminder: your ' + veh(j.plate).model + ' is ready at Ganga Garage. Total ' + fmt(total(j)) + '.'); snack('Pickup reminder sent to ' + first(custOf(j).name) + '.'); render(); },
   pick: function (d) { S.sheet.sel = d.v; render(); },
   reason: function (d) { S.sheet.reason = d.v; render(); },
   confirmAdd: function () {
-    var j = job(S.jobId), p = PARTS.find(function (x) { return x[0] === S.sheet.sel; }); if (!p) return;
-    var it = item(p[1], p[2], 'part', 'added', p[0]); it.reason = S.sheet.reason; j.items.push(it); var c = custOf(j); S.sheet = null;
+    var j = job(S.jobId), sel = S.sheet.sel, c = custOf(j), draft = j.status === 'draft'; if (!sel) return;
+    if (sel.indexOf('svc:') === 0) {
+      var k = sel.slice(4); addSvc(j, k, draft ? 'inspection' : 'added'); S.sheet = null;
+      if (!draft) { send(veh(j.plate).cust, 'Added ' + SERV[k].name + '. New total ' + fmt(total(j)) + '.'); snack('Added ' + SERV[k].name + '. ' + first(c.name) + ' got the new total on WhatsApp.'); }
+      return render();
+    }
+    var p = PARTS.find(function (x) { return x[0] === sel; }); if (!p) return;
+    var it = item(p[1], p[2], 'part', draft ? 'inspection' : 'added', p[0]); it.reason = draft ? null : S.sheet.reason; j.items.push(it); S.sheet = null;
+    if (draft) { snack('Added ' + p[1] + ' to the estimate.'); return render(); }
     if (p[2] >= S.threshold && !c.trust) {
       it.appr = 'pending';
       send(veh(j.plate).cust, 'Your OK needed: ' + p[1] + ' ' + fmt(p[2]) + ' (' + it.reason.toLowerCase() + '). Reply Yes / No / Call.'); it.at = nowStr();
       snack('Sent to ' + first(c.name) + ' for approval. It stays greyed out until they reply.'); mark('add');
     } else {
       deduct(it, j.plate);
-      snack(c.trust ? 'Added. ' + first(c.name) + ' is on “jo theek lage”, so no approval was asked.' : 'Added — under ' + fmt(S.threshold) + ', no approval needed.');
+      send(veh(j.plate).cust, 'Added ' + p[1] + ' ' + fmt(p[2]) + ' (' + it.reason.toLowerCase() + '). New total ' + fmt(total(j)) + '.');
+      snack(c.trust ? 'Added. ' + first(c.name) + ' is on “jo theek lage”, so no approval was asked.' : 'Added — under ' + fmt(S.threshold) + ', no approval needed. ' + first(c.name) + ' got the new total.');
     }
     render();
   },
@@ -135,7 +150,7 @@ var A = {
     if (d.v === 'later') { snack('Bill sent. Payment can be recorded when they collect.'); return render(); }
     j.status = 'closed'; j.paid = d.v; S.month.in += t;
     S.ledger.unshift({ day: 'Today', t: tick(), label: 'Bill · ' + j.plate + ' · ' + (svcNames(j) || 'Parts'), amt: t, mode: d.v });
-    var extra = j.items.filter(function (i) { return i.src === 'added' && counted(i); }).map(function (i) { return i.name; });
+    var extra = j.items.filter(function (i) { return i.src === 'added' && i.kind === 'part' && counted(i); }).map(function (i) { return i.name; });
     veh(j.plate).history.unshift({ date: TODAY, what: [svcNames(j)].concat(extra).filter(Boolean).join(', '), total: t, mech: j.mech });
     send(veh(j.plate).cust, 'Payment of ' + fmt(t) + ' received by ' + d.v + '. Thank you! Next service due around ' + dfmt(addMonths(TODAY, 3)) + '.');
     snack(fmt(t) + ' received by ' + d.v + '. Saved in Hisaab and the vehicle’s history.'); mark('pay');
@@ -170,7 +185,7 @@ function handlePlate(raw) {
   var plate = raw.toUpperCase().replace(/\s+/g, ' ').trim(); if (!plate) return;
   if (!veh(plate)) {
     S.ob = { step: 2, plate: plate, name: '', phone: '', model: '', km: '', welcome: true, startJob: true };
-    S.back.pop(); go('onboard'); snack('New vehicle. Save the customer once — takes 20 seconds.'); render(); return;
+    goRoot('track'); go('onboard'); snack('New vehicle. Save the customer once — takes 20 seconds.'); render(); return;
   }
   var j = activeJob(plate);
   if (j && j.status === 'ticket') {
@@ -181,7 +196,7 @@ function handlePlate(raw) {
     send(veh(plate).cust, 'Namaste ' + first(c.name) + '! Ganga Garage has opened a job card for your ' + veh(plate).model + ' (' + plate + '). Updates will come here.');
     snack('New job card. ' + first(c.name) + ' got a WhatsApp hello.');
   } else snack('This vehicle already has a job open.');
-  S.back.pop(); go('job', { jobId: j.id }); render();
+  goRoot('track'); go('job', { jobId: j.id }); render();
 }
 function obSetPlate(raw) {
   var plate = raw.toUpperCase().replace(/\s+/g, ' ').trim(); if (!plate) return;
@@ -203,23 +218,25 @@ function obSave(startJob) {
 /* ---------- shared UI pieces ---------- */
 function ic(name, cls) { return '<span class="ms ' + (cls || '') + '" aria-hidden="true">' + name + '</span>'; }
 function plateTag(p, lg) { return '<span class="plate ' + (lg ? 'lg' : '') + '">' + esc(p) + '</span>'; }
+function meBtn() {
+  return '<button class="ibtn me" data-a="menu" aria-label="Garage menu: stock, hisaab, settings"><span class="avatar">JJ</span>' + (alertsCount() ? '<span class="dot"></span>' : '') + '</button>';
+}
 function topBar(title, sub) {
   return '<div class="appbar"><button class="ibtn plus" data-a="plus" aria-label="Add a customer or vehicle">' + ic('add') + '</button>' +
-    '<div class="t"><h2>' + title + '</h2><div class="sub">' + sub + '</div></div>' +
-    '<button class="ibtn" data-a="hisaab" aria-label="Hisaab — money">' + ic('account_balance_wallet') + '</button>' +
-    '<button class="ibtn" data-a="settings" aria-label="Settings">' + ic('settings') + '</button></div>';
+    '<div class="t"><h2>' + title + '</h2><div class="sub">' + sub + '</div></div>' + meBtn() + '</div>';
 }
 function subBar(title, sub, actions) {
   return '<div class="appbar"><button class="ibtn" data-a="back" aria-label="Back">' + ic('arrow_back') + '</button><div class="t"><h2>' + title + '</h2>' + (sub ? '<div class="sub">' + sub + '</div>' : '') + '</div>' + (actions || '') + '</div>';
 }
 function navbar() {
-  var items = [['track', 'Tracking', 'assignment'], ['vehicles', 'Vehicles', 'two_wheeler'], ['stock', 'Stock', 'inventory_2']];
-  var al = alertsCount();
-  return '<nav class="navbar" aria-label="Main">' + items.map(function (x) {
-    var on = S.view === x[0];
-    return '<button data-a="nav" data-v="' + x[0] + '" ' + (on ? 'aria-current="page"' : '') + '><span class="pill">' + ic(x[2], on ? 'fill' : '') + '</span>' + x[1] +
-      (x[0] === 'stock' && al ? '<span class="badge">' + al + '</span>' : '') + '</button>';
-  }).join('') + '</nav>';
+  var cur = SECTION[S.view];
+  function tab(v, label, icon) {
+    var on = cur === v;
+    return '<button data-a="nav" data-v="' + v + '" ' + (on ? 'aria-current="page"' : '') + '><span class="pill">' + ic(icon, on ? 'fill' : '') + '</span>' + label + '</button>';
+  }
+  return '<nav class="navbar" aria-label="Main">' + tab('track', 'Ongoing', 'assignment') +
+    '<button class="scanbtn" data-a="scan" ' + (cur === 'scan' ? 'aria-current="page"' : '') + '><span class="ring">' + ic('document_scanner') + '</span>Scan</button>' +
+    tab('vehicles', 'Vehicles', 'two_wheeler') + '</nav>';
 }
 var STATUS = {
   draft: ['Checking now', 'neutral', 1], estimated: ['Estimate sent', 'info', 2], inwork: ['In work', 'info', 3], ready: ['Ready', 'ok', 4], closed: ['Paid', 'ok', 5]
@@ -231,12 +248,13 @@ function vTrack() {
     W = S.jobs.filter(function (j) { return j.status === 'draft' || j.status === 'estimated'; }),
     I = S.jobs.filter(function (j) { return j.status === 'inwork'; }),
     R = S.jobs.filter(function (j) { return j.status === 'ready'; });
-  var inGarage = W.length + I.length + R.length;
+  var inGarage = W.length + I.length + R.length, al = alertsCount();
   var earned = S.ledger.filter(function (l) { return l.day === 'Today' && l.amt > 0; }).reduce(function (a, l) { return a + l.amt; }, 0);
   var lists = { waiting: W, inwork: I, ready: R }, cur = lists[S.tab];
-  var h = topBar('Ganga Garage', 'Wed, 8 Oct · Tracking');
+  var h = topBar('Ongoing', 'Wed, 8 Oct · Ganga Garage');
   h += '<div class="body">';
   h += '<div class="summary"><div><div class="v">' + inGarage + '</div><div class="l">In the garage</div></div><div><div class="v">' + pendingItems().length + '</div><div class="l">Waiting on customer</div></div><div><div class="v">' + fmt(earned) + '</div><div class="l">Earned today</div></div></div>';
+  if (al) h += '<button class="card alert" data-a="stock"><div class="row">' + ic('inventory_2') + '<span class="grow"><b>' + al + ' items to restock</b><span class="small"> · open Stock</span></span>' + ic('chevron_right') + '</div></button>';
   h += '<div class="tabs" role="tablist">' + [['waiting', 'Waiting', W.length + T.length], ['inwork', 'In work', I.length], ['ready', 'Ready', R.length]].map(function (t) {
     return '<button role="tab" aria-selected="' + (S.tab === t[0]) + '" data-a="tab" data-v="' + t[0] + '">' + t[1] + '<span class="cnt">' + t[2] + '</span></button>';
   }).join('') + '</div>';
@@ -249,7 +267,7 @@ function vTrack() {
     if (W.length) h += '<div class="sec">At the garage</div>';
   }
   h += cur.length ? cur.map(jobCard).join('') : '<div class="empty">' + { waiting: 'No vehicles waiting.', inwork: 'Nothing in work right now.', ready: 'No vehicles ready for pickup.' }[S.tab] + '</div>';
-  h += '</div><button class="fab" data-a="scan">' + ic('document_scanner') + 'Scan plate</button>' + navbar();
+  h += '</div>' + navbar();
   return h;
 }
 function jobCard(j) {
@@ -263,52 +281,63 @@ function jobCard(j) {
 }
 function vScan() {
   var demo = [['MH 39 AB 4521', 'Sunil Patil · sent a WhatsApp message'], ['MH 39 Q 7788', 'Ganesh More · regular, walks in'], ['MH 18 BX 3302', 'New vehicle · never been here']];
-  return '<div class="appbar" style="background:var(--cam);color:#fff"><button class="ibtn" style="color:#fff" data-a="back" aria-label="Back">' + ic('arrow_back') + '</button><div class="t"><h2>Scan number plate</h2></div></div>' +
-    '<div class="cam"><div class="viewfinder"><div class="frame"></div><div class="hint">Hold the plate inside the frame</div></div>' +
+  return '<div class="appbar" style="background:var(--cam);color:#fff"><div class="t" style="padding-left:12px"><h2>Scan number plate</h2><div class="sub" style="color:#b9c2c8">Opens the job card for the vehicle in front of you</div></div></div>' +
+    '<div class="cam withnav"><div class="viewfinder"><div class="frame"></div><div class="hint">Hold the plate inside the frame</div></div>' +
     '<div class="small" style="opacity:.75">Demo — pick the plate in front of the camera</div>' +
     '<div class="demo-plates">' + demo.map(function (d) { return '<button data-a="plate" data-v="' + d[0] + '">' + plateTag(d[0]) + '<span class="small muted">' + d[1] + '</span></button>'; }).join('') + '</div>' +
-    '<form id="manual" autocomplete="off"><input id="manual-plate" name="plate" placeholder="Or type the plate" aria-label="Type the number plate"><button class="btn filled" type="submit">Go</button></form></div>';
+    '<form id="manual" autocomplete="off"><input id="manual-plate" name="plate" placeholder="Or type the plate" aria-label="Type the number plate"><button class="btn filled" type="submit">Go</button></form></div>' + navbar();
 }
-function itemRow(it, j, editable) {
-  var src = { customer: 'From customer’s message', inspection: 'Added at inspection', added: 'Added during work' }[it.src];
-  var st = '';
-  if (it.appr === 'pending') st = '<div class="small" style="margin-top:6px;color:var(--on-surface)">' + ic('hourglass_top', '') + ' Waiting for ' + esc(first(custOf(j).name)) + '’s reply on WhatsApp · sent ' + it.at + '</div><div class="row" style="margin-top:4px;gap:4px"><button class="btn text" data-a="decide" data-j="' + j.id + '" data-i="' + it.id + '" data-v="yes">They said yes</button><button class="btn text" data-a="decide" data-j="' + j.id + '" data-i="' + it.id + '" data-v="no">They said no</button></div>';
-  else if (it.appr === 'yes') st = '<div style="margin-top:6px"><span class="chip ok">' + ic('check') + 'Customer approved</span></div>';
-  else if (it.appr === 'no') st = '<div style="margin-top:6px"><span class="chip neutral">Customer said no</span></div>';
-  return '<div class="li ' + (it.appr === 'pending' ? 'pending' : '') + ' ' + (it.appr === 'no' ? 'declined' : '') + '"><div class="grow"><div class="nm">' + esc(it.name) + '</div><div class="src">' + src + (it.reason ? ' · ' + esc(it.reason) : '') + '</div>' + st + '</div><span class="amt">' + fmt(it.price) + '</span>' +
-    (editable ? '<button class="ibtn" data-a="rmItem" data-v="' + it.id + '" aria-label="Remove ' + esc(it.name) + '">' + ic('close') + '</button>' : '') + '</div>';
+function billLine(it, j, editable) {
+  var st = '', cls = it.appr === 'pending' ? 'pending' : it.appr === 'no' ? 'declined' : '';
+  if (it.appr === 'pending') st = '<div class="small" style="margin-top:4px">' + ic('hourglass_top', '') + ' Waiting for ' + esc(first(custOf(j).name)) + '’s OK · sent ' + it.at + '</div><div class="row" style="gap:4px"><button class="btn text" data-a="decide" data-j="' + j.id + '" data-i="' + it.id + '" data-v="yes">They said yes</button><button class="btn text" data-a="decide" data-j="' + j.id + '" data-i="' + it.id + '" data-v="no">They said no</button></div>';
+  else if (it.appr === 'yes') st = '<div class="src">Approved on WhatsApp' + (it.reason ? ' · ' + esc(it.reason) : '') + '</div>';
+  else if (it.appr === 'no') st = '<div class="src">Customer said no · not on the bill</div>';
+  else if (it.svc) st = '<div class="src">With ' + SERV[it.svc].name.toLowerCase() + '</div>';
+  else if (it.reason) st = '<div class="src">' + esc(it.reason) + '</div>';
+  return '<div class="bline ' + cls + '"><div class="grow"><div class="nm">' + esc(it.name) + '</div>' + st + '</div><span class="amt">' + fmt(it.price) + '</span>' +
+    (editable ? '<button class="ibtn sm" data-a="rmItem" data-v="' + it.id + '" aria-label="Remove ' + esc(it.name) + '">' + ic('close') + '</button>' : '') + '</div>';
 }
+/* Job card follows the team's wireframe: vehicle + plate, Billing (parts), Add more,
+   then tool and labour charges, then four big action tiles above the bottom bar. */
 function vJob() {
-  var j = job(S.jobId), v = veh(j.plate), c = custOf(j), st = STATUS[j.status][2], edit = j.status === 'draft', cons = consumables(j);
-  var h = subBar(plateTag(j.plate, true), esc(v.model) + ' · ' + esc(c.name),
-    '<button class="ibtn" data-a="openVeh" data-v="' + j.plate + '" aria-label="Vehicle history">' + ic('history') + '</button><button class="ibtn" data-a="call" aria-label="Call customer">' + ic('call') + '</button>');
-  h += '<div class="body nonav">';
-  h += '<div><div class="stepper">' + [1, 2, 3, 4, 5].map(function (i) { return '<span class="' + (i <= st ? 'on' : '') + '"></span>'; }).join('') + '</div><div class="steplbl">' + ['Estimate', 'Waiting', 'In work', 'Ready', 'Paid'].map(function (l, i) { return '<span class="' + (i + 1 === st ? 'on' : '') + '">' + l + '</span>'; }).join('') + '</div></div>';
-  if (j.said) h += '<div class="card"><div class="row small muted">' + ic('chat', '') + esc(first(c.name)) + ' wrote on WhatsApp · ' + j.saidAt + '</div><div class="quote">“' + esc(j.said) + '”</div></div>';
-  if (c.trust) h += '<div class="row small muted">' + ic('handshake') + '“Jo theek lage” — regular customer, no approvals asked</div>';
-  h += '<div class="sec">' + (edit ? 'Agree the work face to face, then send' : 'Work on this vehicle') + '</div>';
-  h += '<div class="list">' + (j.items.map(function (it) { return itemRow(it, j, edit); }).join('') || '<div class="li muted">Pick services below.</div>') +
-    (cons ? '<div class="li"><div class="grow"><div class="nm">Consumables</div><div class="src">Nuts, bolts, washers · counted by the box</div></div><span class="amt">' + fmt(cons) + '</span></div>' : '') +
-    '<div class="li total"><div class="grow nm">Total</div><span class="amt">' + fmt(total(j)) + '</span></div></div>';
-  if (edit) {
-    var rest = Object.keys(SERV).filter(function (k) { return j.services.indexOf(k) < 0; });
-    h += '<div class="sec">Add from rate card</div><div class="tiles">' + rest.map(function (k) { var s = SERV[k]; return '<button class="tile" data-a="addSvc" data-v="' + k + '">' + ic(s.icon) + '<span class="tm" style="font-size:14px">' + s.name + '</span><span class="p">' + fmt(s.lines.reduce(function (a, l) { return a + l[1]; }, 0)) + '</span></button>'; }).join('') + '</div>';
+  var j = job(S.jobId), v = veh(j.plate), c = custOf(j), st = STATUS[j.status], edit = j.status === 'draft', cons = consumables(j);
+  var pend = j.items.some(function (i) { return i.appr === 'pending'; }), fn = esc(first(c.name));
+  var parts = j.items.filter(function (i) { return i.kind === 'part'; });
+  var labour = j.items.filter(function (i) { return i.kind === 'labour'; }), labourSum = labour.reduce(function (a, i) { return a + i.price; }, 0);
+  var h = '<div class="appbar"><button class="ibtn" data-a="back" aria-label="Back">' + ic('arrow_back') + '</button><div class="t"></div>' + meBtn() + '</div>';
+  h += '<div class="body">';
+  h += '<div class="jhead"><div class="grow"><h2 class="jt">' + esc(v.model) + '</h2><div class="muted ell">' + esc(c.name) + '</div></div>' + plateTag(j.plate, true) + '</div>';
+  h += '<div class="row" style="flex-wrap:wrap;gap:6px"><span class="chip ' + (pend ? 'warn' : st[1]) + '">' + (pend ? ic('hourglass_top') + 'Waiting for ' + fn : st[0]) + '</span>' +
+    (j.status !== 'draft' && j.mech ? '<span class="chip neutral">' + esc(j.mech) + ' · ready ' + esc((j.eta || '').toLowerCase()) + '</span>' : '') +
+    (c.trust ? '<span class="chip neutral">' + ic('handshake') + 'Jo theek lage</span>' : '') + '</div>';
+  if (j.said) h += '<div class="quote small"><span class="muted">' + fn + ' on WhatsApp · ' + j.saidAt + '</span><br>“' + esc(j.said) + '”</div>';
+
+  h += '<div class="bill"><div class="bill-h"><span>Billing</span><span class="small muted">' + (j.billNo ? 'Bill ' + j.billNo + ' · sent' : edit ? 'Estimate · not sent yet' : 'Estimate sent') + '</span></div>' +
+    (parts.length ? parts.map(function (it) { return billLine(it, j, edit); }).join('') : '<div class="bline muted">No parts yet</div>') + '</div>';
+  if (j.status !== 'ready' && j.status !== 'closed') {
+    h += '<button class="addmore" data-a="openAdd">' + ic('add') + '<span class="grow">' + (edit ? 'Add service or part' : 'Add more · notify ' + fn) + '</span>' + (edit ? '' : ic('chat')) + '</button>';
+    if (!edit) h += '<div class="small muted" style="margin-top:-4px">Parts over ' + fmt(S.threshold) + ' stay greyed out until ' + fn + ' says yes.</div>';
   }
-  if (j.status === 'estimated') {
-    h += '<div class="sec">Who works on it</div><div class="seg">' + MECHS.map(function (m) { return '<button data-a="mech" data-v="' + m + '" aria-pressed="' + (j.mech === m) + '">' + (j.mech === m ? ic('check') : '') + m + '</button>'; }).join('') + '</div>';
-    h += '<div class="sec">Ready by</div><div class="fchips">' + ETAS.map(function (e) { return '<button class="fchip" data-a="eta" data-v="' + e + '" aria-pressed="' + (j.eta === e) + '">' + e + '</button>'; }).join('') + '</div>';
-    h += '<div class="small muted">' + esc(first(c.name)) + ' will get “Started by ' + j.mech + ' · ready ' + (j.eta || '').toLowerCase() + '” — no queue number. <span class="tag">Proposed</span></div>';
-  }
-  if (j.status === 'inwork') h += '<div class="small muted">Found something new? Tap Add item. Parts over ' + fmt(S.threshold) + ' wait for the customer’s OK.</div>';
-  if (j.status === 'ready') h += '<div class="card outlined"><div class="row">' + ic('receipt_long') + '<div class="grow"><div class="tm">Bill ' + j.billNo + '</div><div class="small muted">Made at Done ' + (j.doneAt || '') + ' · sent to ' + esc(first(c.name)) + ' on WhatsApp</div></div><span class="chip wa">' + ic('done_all') + 'Sent</span></div></div>';
-  h += '</div>';
-  var bar = {
-    draft: '<button class="btn filled big" data-a="sendEstimate">' + ic('send') + 'Send estimate</button>',
-    estimated: '<button class="btn filled big" data-a="start">' + ic('play_arrow') + 'Start work</button>',
-    inwork: '<button class="btn tonal big" data-a="openAdd">' + ic('add') + 'Add item</button><button class="btn filled big" data-a="done">' + ic('check') + 'Mark done</button>',
-    ready: '<button class="btn filled big" data-a="openPay">' + ic('payments') + 'Record payment</button>'
+  h += '<div class="charges">' +
+    '<div class="bline"><div class="grow"><div class="nm">Minimal tool charges</div><div class="src">Nuts, bolts, washers · counted by the box</div></div><span class="amt">' + fmt(cons) + '</span></div>' +
+    '<div class="bline"><div class="grow"><div class="nm">Labour charges</div><div class="src">' + (j.services.length ? j.services.map(function (k) { return SERV[k].name; }).join(' · ') : 'No services yet') + '</div></div><span class="amt">' + fmt(labourSum) + '</span></div>' +
+    (edit && j.services.length ? '<div class="fchips" style="padding:4px 0 8px">' + j.services.map(function (k) { return '<button class="fchip" data-a="rmSvc" data-v="' + k + '" aria-label="Remove ' + SERV[k].name + '">' + SERV[k].name + ic('close') + '</button>'; }).join('') + '</div>' : '') +
+    '<div class="bline total"><div class="grow nm">Total</div><span class="amt">' + fmt(total(j)) + '</span></div></div>';
+
+  var next = {
+    draft: ['sendEstimate', 'send', 'Send estimate', 'To ' + fn + ' on WhatsApp'],
+    estimated: ['start', 'play_arrow', 'Start work', (j.mech || 'Ajay') + ' · ' + (j.eta || 'By 5 pm').toLowerCase()],
+    inwork: ['done', 'check_circle', 'Mark done', 'The bill goes out by itself'],
+    ready: ['openPay', 'payments', 'Record payment', fmt(total(j)) + ' · cash or UPI']
   }[j.status];
-  if (bar) h += '<div class="actionbar">' + bar + '</div>';
+  var tile = function (a, icon, label, sub, cls, v) { return '<button class="act ' + (cls || '') + '" data-a="' + a + '"' + (v ? ' data-v="' + v + '"' : '') + '>' + ic(icon) + '<span><span class="al">' + label + '</span><span class="as">' + sub + '</span></span></button>'; };
+  h += '<div class="acts">' +
+    (next ? tile(next[0], next[1], next[2], next[3], 'primary') : tile('back', 'done_all', 'Paid', 'Saved in Hisaab')) +
+    tile('call', 'call', 'Call ' + fn, c.phone) +
+    tile('openVeh', 'history', 'History', v.history.length + ' past visits', '', j.plate) +
+    (j.status === 'ready' ? tile('remindCollect', 'notifications', 'Remind to collect', 'WhatsApp nudge') : tile('crew', 'engineering', j.mech || 'Ajay', 'Ready ' + (j.eta || 'By 5 pm').toLowerCase())) +
+    '</div>';
+  h += '</div>' + navbar();
   return h;
 }
 function vVehicles() {
@@ -336,7 +365,7 @@ function vVehicle() {
   var p = S.vehId, v = veh(p), c = S.customers[v.cust], l = lastVisit(p), aj = activeJob(p);
   var spent = v.history.reduce(function (a, x) { return a + x.total; }, 0);
   var h = subBar(plateTag(p, true), esc(v.model), '<button class="ibtn" data-a="call" aria-label="Call owner">' + ic('call') + '</button>');
-  h += '<div class="body nonav">';
+  h += '<div class="body">';
   h += '<div class="card"><div class="row"><span class="avatar">' + initials(c.name) + '</span><div class="grow"><div class="tm">' + esc(c.name) + '</div><div class="small muted">' + c.phone + ' · WhatsApp</div></div></div>' +
     '<div class="row"><div class="grow"><div class="small">Jo theek lage — skip approvals <span class="tag">Considering</span></div><div class="src">For regulars who trust you with any part</div></div><button class="toggle" role="switch" aria-checked="' + c.trust + '" aria-label="Skip approvals for ' + esc(c.name) + '" data-a="trust" data-v="' + v.cust + '"></button></div></div>';
   h += '<div class="stat-grid"><div class="stat"><div class="small muted">Visits</div><div class="v">' + v.history.length + '</div></div><div class="stat"><div class="small muted">Total spent</div><div class="v">' + fmt(spent) + '</div></div>' +
@@ -347,7 +376,7 @@ function vVehicle() {
   else h += '<button class="btn filled big block" data-a="newJobFor" data-v="' + p + '">' + ic('add_task') + 'Start a job for this vehicle</button>' + (isDue(p) ? '<button class="btn outline block" data-a="remind" data-v="' + p + '">' + ic('notifications') + 'Send service reminder on WhatsApp</button>' : '');
   h += '<div class="sec">History</div>';
   h += v.history.length ? '<div class="timeline">' + v.history.map(function (x) { return '<div class="tl"><div class="rail"><i></i><b></b></div><div class="c"><div class="row between"><span class="tm" style="font-size:15px">' + dfmt(x.date) + '</span><span class="num" style="font-weight:500">' + fmt(x.total) + '</span></div><div class="small muted">' + esc(x.what) + (x.mech ? ' · by ' + x.mech : '') + '</div></div></div>'; }).join('') + '</div>' : '<div class="empty">No visits yet. The first bill will start the history.</div>';
-  h += '</div>';
+  h += '</div>' + navbar();
   return h;
 }
 function vStock() {
@@ -355,8 +384,8 @@ function vStock() {
   var low = parts.filter(function (k) { return S.stock[k].qty <= S.stock[k].re; }), lowB = boxes.filter(function (k) { return S.boxes[k].level <= 0.5; });
   var value = parts.reduce(function (a, k) { return a + S.stock[k].qty * S.stock[k].cost; }, 0);
   var usedToday = S.usage.filter(function (u) { return u.qty.charAt(0) === '−'; }).length;
-  var h = topBar('Stock', 'Goes down by itself as jobs finish');
-  h += '<div class="body">';
+  var h = subBar('Stock', 'Goes down by itself as jobs finish');
+  h += '<div class="body nonav">';
   h += '<div class="summary"><div><div class="v" style="' + (low.length + lowB.length ? 'color:var(--error)' : '') + '">' + (low.length + lowB.length) + '</div><div class="l">To restock</div></div><div><div class="v">' + fmt(value) + '</div><div class="l">Parts on shelf</div></div><div><div class="v">' + usedToday + '</div><div class="l">Used today</div></div></div>';
   h += '<div class="fchips">' + [['all', 'All'], ['low', 'Restock'], ['parts', 'Parts'], ['boxes', 'Small parts']].map(function (f) { return '<button class="fchip" data-a="sfilter" data-v="' + f[0] + '" aria-pressed="' + (S.sfilter === f[0]) + '">' + (S.sfilter === f[0] ? ic('check') : '') + f[1] + '</button>'; }).join('') + '</div>';
   var showP = S.sfilter === 'all' || S.sfilter === 'parts' || S.sfilter === 'low', showB = S.sfilter === 'all' || S.sfilter === 'boxes' || S.sfilter === 'low';
@@ -372,7 +401,7 @@ function vStock() {
   if (S.sfilter === 'low' && !low.length && !lowB.length) h += '<div class="empty">Nothing to restock. Shelves look full.</div>';
   h += '<div class="sec">Movement today</div><div class="list">' + S.usage.slice(0, 8).map(function (u) { return '<div class="li"><div class="grow"><div>' + esc(u.what) + '</div><div class="src">' + u.t + ' · ' + esc(u.plate) + '</div></div><span class="amt ' + (u.qty.charAt(0) === '+' ? 'plus' : '') + '">' + u.qty + '</span></div>'; }).join('') + '</div>';
   h += '<div class="small muted">Small parts are never counted one by one: each service has an average use (brake check ≈ 5 nuts) and a finished job takes that share of a box.</div>';
-  h += '</div>' + navbar();
+  h += '</div>';
   return h;
 }
 function vHisaab() {
@@ -445,21 +474,44 @@ function sheetHTML() {
       '<button class="opt" data-a="poster"><span class="ic">' + ic('qr_code_2') + '</span><span class="grow"><b>Garage QR poster</b><div class="src">For the counter and every bill</div></span></button>' +
       '<div class="small muted">Onboarding is still being designed by the team. <span class="tag">Open</span></div>';
   }
+  if (sh.type === 'menu') {
+    var al = alertsCount(), m = S.month;
+    h = '<div class="row"><span class="avatar" style="width:48px;height:48px;border-radius:24px">JJ</span><div class="grow"><h3 style="margin:0">Ganga Garage</h3><div class="small muted">Jithendra ji · Dhule Road, Nandurbar</div></div></div>' +
+      '<button class="opt" data-a="stock"><span class="ic">' + ic('inventory_2') + '</span><span class="grow"><b>Stock</b><div class="src">' + (al ? al + ' items to restock' : 'Shelves look full') + ' · goes down by itself</div></span>' + (al ? '<span class="chip err">' + al + '</span>' : '') + '</button>' +
+      '<button class="opt" data-a="hisaab"><span class="ic">' + ic('account_balance_wallet') + '</span><span class="grow"><b>Hisaab</b><div class="src">Profit in October so far ' + fmt(m.in - m.parts - m.wages - m.exp) + '</div></span></button>' +
+      '<button class="opt" data-a="settings"><span class="ic">' + ic('settings') + '</span><span class="grow"><b>Settings</b><div class="src">Approval limit, rate card, mechanics, language</div></span></button>' +
+      '<div class="small muted">Hisaab and stock are looked at now and then, so they sit here instead of the bottom bar.</div>';
+  }
+  if (sh.type === 'crew') {
+    var jc = job(S.jobId);
+    h = '<h3>Who and when</h3><div class="small muted">' + esc(first(custOf(jc).name)) + ' gets “Started by ' + esc(jc.mech || 'Ajay') + ' · ready ' + esc((jc.eta || 'By 5 pm').toLowerCase()) + '”. No queue number. <span class="tag">Proposed</span></div>' +
+      '<div class="sec">Who works on it</div><div class="seg">' + MECHS.map(function (m) { var on = (jc.mech || 'Ajay') === m; return '<button data-a="mech" data-v="' + m + '" aria-pressed="' + on + '">' + (on ? ic('check') : '') + m + '</button>'; }).join('') + '</div>' +
+      '<div class="sec">Ready by</div><div class="fchips">' + ETAS.map(function (e) { var on = (jc.eta || 'By 5 pm') === e; return '<button class="fchip" data-a="eta" data-v="' + e + '" aria-pressed="' + on + '">' + e + '</button>'; }).join('') + '</div>' +
+      '<button class="btn filled big block" data-a="closeSheet">Done</button>';
+  }
   if (sh.type === 'add') {
-    var j = job(S.jobId), c = custOf(j), p = PARTS.find(function (x) { return x[0] === sh.sel; }), needs = p && p[2] >= S.threshold && !c.trust;
-    h = '<h3>Add item</h3><div class="small muted">Found something new while working?</div><div style="display:flex;flex-direction:column;gap:8px">' + PARTS.map(function (x) {
-      var s = S.stock[x[0]], big = x[2] >= S.threshold && !c.trust;
-      return '<button class="opt" data-a="pick" data-v="' + x[0] + '" aria-pressed="' + (sh.sel === x[0]) + '"><span class="grow">' + x[1] + '<div class="src">' + (s ? s.qty + ' in stock' : '') + '</div></span>' + (big ? '<span class="chip warn" style="height:24px">Needs OK</span>' : '') + '<span class="amt">' + fmt(x[2]) + '</span></button>';
-    }).join('') + '</div>' +
-      '<div class="sec">Why</div><div class="fchips">' + REASONS.map(function (r) { return '<button class="fchip" data-a="reason" data-v="' + r + '" aria-pressed="' + (sh.reason === r) + '">' + r + '</button>'; }).join('') + '</div>' +
-      '<button class="btn filled big block" data-a="confirmAdd" ' + (p ? '' : 'disabled') + '>' + (!p ? 'Pick an item' : needs ? 'Ask ' + esc(first(c.name)) + ' on WhatsApp' : 'Add to bill') + '</button>';
+    var j = job(S.jobId), c = custOf(j), draft = j.status === 'draft', isSvc = sh.sel && sh.sel.indexOf('svc:') === 0;
+    var p = !isSvc && PARTS.find(function (x) { return x[0] === sh.sel; }), needs = !draft && p && p[2] >= S.threshold && !c.trust;
+    var rest = Object.keys(SERV).filter(function (k) { return j.services.indexOf(k) < 0; });
+    h = '<h3>' + (draft ? 'Add to the bill' : 'Add more') + '</h3><div class="small muted">' + (draft ? 'Agree it face to face, then send the estimate.' : esc(first(c.name)) + ' gets a WhatsApp with the new total.') + '</div>' +
+      (rest.length ? '<div class="sec">Services · rate card</div><div style="display:flex;flex-direction:column;gap:8px">' + rest.map(function (k) {
+        var sv = SERV[k];
+        return '<button class="opt" data-a="pick" data-v="svc:' + k + '" aria-pressed="' + (sh.sel === 'svc:' + k) + '"><span class="ic">' + ic(sv.icon) + '</span><span class="grow">' + sv.name + '<div class="src">' + sv.lines.map(function (l) { return l[0]; }).join(' + ') + '</div></span><span class="amt">' + fmt(sv.lines.reduce(function (a, l) { return a + l[1]; }, 0)) + '</span></button>';
+      }).join('') + '</div>' : '') +
+      '<div class="sec">Parts</div><div style="display:flex;flex-direction:column;gap:8px">' + PARTS.map(function (x) {
+        var s = S.stock[x[0]], big = !draft && x[2] >= S.threshold && !c.trust;
+        return '<button class="opt" data-a="pick" data-v="' + x[0] + '" aria-pressed="' + (sh.sel === x[0]) + '"><span class="grow">' + x[1] + '<div class="src">' + (s ? s.qty + ' in stock' : '') + '</div></span>' + (big ? '<span class="chip warn" style="height:24px">Needs OK</span>' : '') + '<span class="amt">' + fmt(x[2]) + '</span></button>';
+      }).join('') + '</div>' +
+      (!draft && p ? '<div class="sec">Why</div><div class="fchips">' + REASONS.map(function (r) { return '<button class="fchip" data-a="reason" data-v="' + r + '" aria-pressed="' + (sh.reason === r) + '">' + r + '</button>'; }).join('') + '</div>' : '') +
+      '<button class="btn filled big block" data-a="confirmAdd" ' + (sh.sel ? '' : 'disabled') + '>' + (!sh.sel ? 'Pick a service or part' : needs ? 'Ask ' + esc(first(c.name)) + ' on WhatsApp' : draft ? 'Add to estimate' : 'Add and notify ' + esc(first(c.name))) + '</button>';
   }
   if (sh.type === 'bill') {
     var jb = job(S.jobId), cb = custOf(jb);
     h = '<h3>Bill ' + jb.billNo + '</h3><div class="row"><span class="chip wa">' + ic('done_all') + 'Sent to ' + esc(first(cb.name)) + ' on WhatsApp</span></div>' +
-      '<div class="list">' + jb.items.filter(counted).map(function (i) { return '<div class="li"><div class="grow">' + esc(i.name) + (i.appr === 'yes' ? '<div class="src">Approved on WhatsApp</div>' : '') + '</div><span class="amt">' + fmt(i.price) + '</span></div>'; }).join('') +
-      (consumables(jb) ? '<div class="li"><div class="grow">Consumables</div><span class="amt">' + fmt(consumables(jb)) + '</span></div>' : '') +
-      '<div class="li total"><div class="grow nm">Total</div><span class="amt">' + fmt(total(jb)) + '</span></div></div>' +
+      '<div class="bill">' + jb.items.filter(function (i) { return i.kind === 'part' && counted(i); }).map(function (i) { return '<div class="bline"><div class="grow"><div class="nm">' + esc(i.name) + '</div>' + (i.appr === 'yes' ? '<div class="src">Approved on WhatsApp</div>' : '') + '</div><span class="amt">' + fmt(i.price) + '</span></div>'; }).join('') +
+      '<div class="bline"><div class="grow nm">Minimal tool charges</div><span class="amt">' + fmt(consumables(jb)) + '</span></div>' +
+      '<div class="bline"><div class="grow"><div class="nm">Labour charges</div><div class="src">' + esc(svcNames(jb)) + '</div></div><span class="amt">' + fmt(jb.items.filter(function (i) { return i.kind === 'labour' && counted(i); }).reduce(function (a, i) { return a + i.price; }, 0)) + '</span></div>' +
+      '<div class="bline total"><div class="grow nm">Total</div><span class="amt">' + fmt(total(jb)) + '</span></div></div>' +
       '<div class="small muted">90-day guarantee printed on the bill. Next service date added for the customer.</div>' +
       '<div class="sec">How did they pay?</div><div style="display:flex;flex-direction:column;gap:8px">' +
       '<button class="opt" data-a="pay" data-v="Cash"><span class="ic">' + ic('payments') + '</span><span class="grow">Cash</span></button>' +
@@ -488,7 +540,7 @@ function sheetHTML() {
 }
 
 /* ---------- demo panel (stands in for the customer side) ---------- */
-var GUIDE = [['scan', 'Tap Scan plate → MH 39 AB 4521 (Sunil messaged on WhatsApp)'], ['estimate', 'Check the list, then Send estimate'], ['start', 'Pick mechanic and time, Start work'], ['add', 'Add item → Brake shoe set (₹450 needs an OK)'], ['reply', 'Answer for Sunil below, or tap “They said yes”'], ['done', 'Mark done — the bill makes itself'], ['pay', 'Record payment, then open Hisaab (wallet icon)'], ['stock', 'In Stock, restock the headlight bulbs'], ['onboard', 'Tap + to add a new customer']];
+var GUIDE = [['scan', 'Tap Scan (middle of the bottom bar) → MH 39 AB 4521. Sunil messaged on WhatsApp'], ['estimate', 'Check the bill, then tap Send estimate'], ['start', 'Tap Start work. The fourth tile changes mechanic and time'], ['add', 'Add more → Brake shoe set (₹450 needs an OK)'], ['reply', 'Answer for Sunil below, or tap “They said yes”'], ['done', 'Mark done. The bill makes itself'], ['pay', 'Record payment, then open Hisaab (JJ circle, top right)'], ['stock', 'In Stock (same menu), restock the headlight bulbs'], ['onboard', 'Tap + to add a new customer']];
 function panelHTML() {
   var h = '<div class="pcard"><h2>' + ic('route') + 'Try one job, start to finish</h2><ol class="steps">' + GUIDE.map(function (g, i) { var d = S.progress[g[0]]; return '<li class="' + (d ? 'done' : '') + '"><span class="n">' + (d ? '✓' : i + 1) + '</span><span>' + g[1] + '</span></li>'; }).join('') + '</ol></div>';
   var pend = pendingItems();
@@ -507,7 +559,7 @@ function render() {
   var dark = S.view === 'scan' || (S.view === 'onboard' && S.ob && S.ob.step === 1);
   $('app').innerHTML = '<div class="sbar" style="' + (dark ? 'background:var(--cam);color:#fff' : '') + '"><span>' + nowStr().replace(/ [ap]m/, '') + '</span><span>' + ic('signal_cellular_alt') + ' ' + ic('battery_5_bar') + '</span></div>' +
     VIEWS[S.view]() + (S.snack ? '<div class="snack" role="status">' + esc(S.snack) + '</div>' : '') + sheetHTML();
-  $('panel').innerHTML = panelHTML();
+  if ($('panel')) $('panel').innerHTML = panelHTML();
   var nb = document.querySelector('#app .body'); if (nb && keepScroll) nb.scrollTop = keepScroll;
   render.lastView = S.view + S.jobId + S.vehId;
   if (fid) { var el = $(fid); if (el && el.tagName === 'INPUT') { el.focus(); try { el.setSelectionRange(sel, sel); } catch (e) {} } }
