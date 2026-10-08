@@ -23,7 +23,10 @@ There are three bottom tabs: **Stock**, **Jobs** (the default, in the centre) an
 - **Scan plate** finds the job card for the vehicle in front of you. The scan is simulated, and you can also type the plate.
 - Job cards are dark **bill cards** that you swipe sideways. Each one shows the stage, the plate, the vehicle, the ready-by time, the services and parts, and the estimate.
 - The **grid button** switches to an overview of every job.
-- **Add part or service** adds an item that stays greyed out ("Awaiting customer") until the customer approves it on WhatsApp. Approval is simulated after 5 seconds, and an approved part is taken out of Stock.
+- **Add part or service** opens the two screens from the team's Figma file (Autoooo, Frames 19 and 20):
+  1. **Categories:** Bike regular service, Bike regular service with wash, Brake correction, Mirror attachment, Engine problem and Oil change, each showing its price. A last option, **Single part from stock**, adds one part without a package. Confirm stays disabled until a category is chosen, and Back returns to the job.
+  2. **The package:** what the category includes, each item with its price and the stock count for parts. Then come service charges and a live total. Tap an item to leave it out (it's crossed out and the total drops). Out-of-stock parts can't be ticked. Back returns to the categories with the choice kept, and Confirm stays disabled if nothing is ticked.
+  - **Confirm** sends the package to the customer as one approval request. The items stay greyed out on the bill ("Awaiting customer") and Mark as done stays locked until they approve. Approval is simulated after 5 seconds. Approved parts are taken out of Stock.
 - Below the card: labour and tool charges, the customer, **Call**, **Notify (optional)**, the payment method (UPI or Cash), and **Mark as done**. Mark as done stays locked while anything is awaiting approval, and it logs the bill to My Garage.
 
 ### Stock

@@ -249,31 +249,26 @@ export default function App() {
   const jobsRef = useRef(jobs);
   jobsRef.current = jobs;
 
-  const approve = (jobId: string, itemId: string) => {
-    const item = jobsRef.current.find((j) => j.id === jobId)?.items.find((i) => i.id === itemId);
-    if (!item || item.approved) return;
-    setJobs((js) =>
-      js.map((j) =>
-        j.id !== jobId ? j : { ...j, items: j.items.map((i) => (i.id === itemId ? { ...i, approved: true } : i)) },
-      ),
-    );
-    if (item.partId) {
-      setParts((ps) =>
-        ps.map((p) =>
-          p.id !== item.partId
-            ? p
-            : { ...p, brands: p.brands.map((b) => (b.brand === item.brand && b.qty > 0 ? { ...b, qty: b.qty - 1 } : b)) },
-        ),
-      );
-    }
-    notify(`Customer approved ${item.label}`);
+  /** Customer said yes on WhatsApp: the items count on the bill and parts leave the shelf. */
+  const approveMany = (jobId: string, ids: string[], what: string) => {
+    const items = jobsRef.current.find((j) => j.id === jobId)?.items.filter((i) => ids.includes(i.id) && !i.approved) ?? [];
+    if (!items.length) return;
+    setJobs((js) => js.map((j) => (j.id !== jobId ? j : { ...j, items: j.items.map((i) => (ids.includes(i.id) ? { ...i, approved: true } : i)) })));
+    setParts((ps) => ps.map((p) => {
+      const used = items.filter((i) => i.partId === p.id);
+      if (!used.length) return p;
+      return { ...p, brands: p.brands.map((b) => ({ ...b, qty: Math.max(0, b.qty - used.filter((i) => i.brand === b.brand).length) })) };
+    }));
+    notify(`Customer approved ${what}`);
   };
 
-  const addItem = (jobId: string, item: Omit<Item, "id" | "approved">) => {
-    const id = `n${Date.now()}`;
-    setJobs((js) => js.map((j) => (j.id === jobId ? { ...j, items: [...j.items, { ...item, id, approved: false }] } : j)));
-    notify("Sent to customer for approval");
-    window.setTimeout(() => approve(jobId, id), 5000);
+  /** Add a package (or single parts) to a job; the customer approves it once on WhatsApp. */
+  const addItems = (jobId: string, items: Omit<Item, "id" | "approved">[], what: string) => {
+    const stamp = Date.now();
+    const added = items.map((it, k) => ({ ...it, id: `n${stamp}-${k}`, approved: false }));
+    setJobs((js) => js.map((j) => (j.id === jobId ? { ...j, items: [...j.items, ...added] } : j)));
+    notify(`${what} sent to customer for approval`);
+    window.setTimeout(() => approveMany(jobId, added.map((i) => i.id), what), 5000);
   };
 
   const markDone = (jobId: string, method: string) => {
@@ -324,7 +319,7 @@ export default function App() {
           <div className="min-h-0 flex-1">
             {nav === "Stock" && <StockTab parts={parts} toggleOrder={toggleOrder} />}
             {nav === "Jobs" && (
-              <JobsTab jobs={jobs} parts={parts} addItem={addItem} markDone={markDone} notifyCustomer={notifyCustomer} notify={notify} />
+              <JobsTab jobs={jobs} parts={parts} addItems={addItems} markDone={markDone} notifyCustomer={notifyCustomer} notify={notify} />
             )}
             {nav === "My Garage" && (
               <GarageTab
@@ -488,7 +483,7 @@ function StockTab({ parts, toggleOrder }: { parts: Part[]; toggleOrder: (id: str
                   <button
                     onClick={() => toggleOrder(p.id)}
                     className={`mt-2 h-12 w-full rounded-full text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#222222] ${
-                      p.toOrder ? "bg-white text-[#222222] hover:bg-[#faf7f5]" : "bg-[#ff4d0a] text-[#222222] hover:bg-[#e64400]"
+                      p.toOrder ? "bg-white text-[#222222] hover:bg-[#faf7f5]" : "bg-[#ff4d0a] text-[#222222] hover:bg-[#ff6a2e]"
                     }`}
                   >
                     {p.toOrder ? "Remove from order list" : "Mark to order"}
@@ -506,11 +501,11 @@ function StockTab({ parts, toggleOrder }: { parts: Part[]; toggleOrder: (id: str
 /* ----------------------------------- JOBS --------------------------------- */
 
 function JobsTab({
-  jobs, parts, addItem, markDone, notifyCustomer, notify,
+  jobs, parts, addItems, markDone, notifyCustomer, notify,
 }: {
   jobs: Job[];
   parts: Part[];
-  addItem: (jobId: string, item: Omit<Item, "id" | "approved">) => void;
+  addItems: (jobId: string, items: Omit<Item, "id" | "approved">[], what: string) => void;
   markDone: (jobId: string, method: string) => void;
   notifyCustomer: (jobId: string) => void;
   notify: (m: string) => void;
@@ -535,7 +530,7 @@ function JobsTab({
       <div className="mb-3 flex shrink-0 items-center justify-end gap-2 px-4 min-[400px]:px-6">
         <button
           onClick={() => setScan(true)}
-          className="flex h-12 items-center gap-2 rounded-full bg-[#ff4d0a] px-5 text-sm font-semibold text-[#222222] transition hover:bg-[#e64400] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#222222]"
+          className="flex h-12 items-center gap-2 rounded-full bg-[#ff4d0a] px-5 text-sm font-semibold text-[#222222] transition hover:bg-[#ff6a2e] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#222222]"
         >
           <Icon name="scan" className="size-[18px]" /> Scan plate
         </button>
@@ -625,7 +620,7 @@ function JobsTab({
               <button
                 disabled={cur.items.some((i) => !i.approved)}
                 onClick={() => { markDone(cur.id, pay); setIdx(0); }}
-                className="h-14 w-full rounded-full bg-[#ff4d0a] text-sm font-bold text-[#222222] transition hover:bg-[#e64400] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#222222] disabled:bg-black/10 disabled:text-[#6e6762]"
+                className="h-14 w-full rounded-full bg-[#ff4d0a] text-sm font-bold text-[#222222] transition hover:bg-[#ff6a2e] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#222222] disabled:bg-black/10 disabled:text-[#6e6762]"
               >
                 {cur.items.some((i) => !i.approved) ? "Waiting for customer approval" : `Mark as done · ${inr(billTotal(cur))}`}
               </button>
@@ -649,10 +644,11 @@ function JobsTab({
       )}
 
       {sheet && cur && (
-        <AddSheet
+        <ServiceFlow
+          job={cur}
           parts={parts}
           onClose={() => setSheet(false)}
-          onAdd={(item) => { addItem(cur.id, item); setSheet(false); }}
+          onConfirm={(items, what) => { addItems(cur.id, items, what); setSheet(false); }}
         />
       )}
     </div>
@@ -707,7 +703,7 @@ function ScanSheet({ jobs, onClose, onMatch }: { jobs: Job[]; onClose: () => voi
         <button
           onClick={scan}
           disabled={scanning}
-          className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#ff4d0a] text-sm font-bold text-[#222222] transition hover:bg-[#e64400] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#222222] disabled:opacity-60"
+          className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#ff4d0a] text-sm font-bold text-[#222222] transition hover:bg-[#ff6a2e] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#222222] disabled:opacity-60"
         >
           <Icon name="scan" className="size-[18px]" /> {scanning ? "Scanning…" : "Scan plate"}
         </button>
@@ -800,54 +796,163 @@ function BillCard({ job }: { job: Job }) {
   );
 }
 
-function AddSheet({
-  parts, onClose, onAdd,
+/* --------------------------- SERVICE CATEGORIES ---------------------------
+   From the team's Figma file (Autoooo, Frames 19 and 20):
+   1. Categories: pick what the vehicle came in for, then Confirm.
+   2. The package: what that service includes, each with its price, then service
+      charges and the total, then Confirm. Items can be ticked in or out. */
+
+type PkgLine = { label: string; price: number; partId?: string };
+type Pkg = { id: string; name: string; lines: PkgLine[]; service: number; startEmpty?: boolean };
+
+const CATEGORIES: Pkg[] = [
+  { id: "reg", name: "Bike regular service", service: 300, lines: [
+    { label: "Engine oil", price: 380, partId: "oil" }, { label: "Filter cleaning", price: 120 },
+    { label: "Spark plug", price: 150, partId: "plugs" }, { label: "Chain lubrication", price: 80 } ] },
+  { id: "wash", name: "Bike regular service with wash", service: 300, lines: [
+    { label: "Wash", price: 100 }, { label: "Engine oil", price: 380, partId: "oil" },
+    { label: "Filter cleaning", price: 120 }, { label: "Spark plug", price: 150, partId: "plugs" } ] },
+  { id: "brake", name: "Brake correction", service: 100, lines: [
+    { label: "Brake adjustment", price: 150 }, { label: "Brake pads", price: 450, partId: "pads" }, { label: "Brake cable", price: 180 } ] },
+  { id: "mirror", name: "Mirror attachment", service: 50, lines: [{ label: "Side mirror", price: 220 }, { label: "Fitting", price: 50 }] },
+  { id: "engine", name: "Engine problem", service: 400, lines: [
+    { label: "Engine inspection", price: 200 }, { label: "Spark plug", price: 150, partId: "plugs" },
+    { label: "Carburettor cleaning", price: 350 }, { label: "Air filter", price: 160 } ] },
+  { id: "oilc", name: "Oil change", service: 100, lines: [{ label: "Engine oil", price: 380, partId: "oil" }, { label: "Oil filter", price: 120, partId: "oilf" }] },
+];
+
+const pkgTotal = (c: Pkg) => c.lines.reduce((s, l) => s + l.price, 0) + c.service;
+
+function ScreenBar({ title, sub, onBack, backLabel }: { title: string; sub: string; onBack: () => void; backLabel: string }) {
+  return (
+    <div className="grid shrink-0 grid-cols-[48px_1fr_48px] items-start gap-2 px-4 pt-2 pb-4 min-[400px]:px-6">
+      <button onClick={onBack} aria-label={backLabel} className="grid size-12 place-items-center rounded-full bg-[#f4f0ed] text-[#222222] transition hover:bg-[#ebe4df] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#222222]">
+        <Icon name="chevron" className="size-6 rotate-180" />
+      </button>
+      <div className="pt-1 text-center">
+        <h3 className="display text-[22px] leading-7 text-[#222222] [text-wrap:balance]">{title}</h3>
+        <p className="mt-1 text-xs text-[#6e6762]">{sub}</p>
+      </div>
+      <span />
+    </div>
+  );
+}
+
+function ServiceFlow({
+  job, parts, onClose, onConfirm,
 }: {
+  job: Job;
   parts: Part[];
   onClose: () => void;
-  onAdd: (item: Omit<Item, "id" | "approved">) => void;
+  onConfirm: (items: Omit<Item, "id" | "approved">[], what: string) => void;
 }) {
-  const extras = [
-    { label: "Wheel alignment", price: 800 },
-    { label: "AC gas top-up", price: 1500 },
-    { label: "Battery terminal clean", price: 250 },
-  ];
+  const [step, setStep] = useState<"categories" | "package">("categories");
+  const [catId, setCatId] = useState<string | null>(null);
+  const [off, setOff] = useState<Set<string>>(new Set());
+  const forJob = `${job.plate} · ${job.vehicle.split(" · ")[0]}`;
+
+  // "Single part from stock": every part on the shelf, nothing ticked yet, no service charge.
+  const single: Pkg = { id: "single", name: "Single part from stock", service: 0, startEmpty: true, lines: parts.map((p) => ({ label: p.name, price: p.price, partId: p.id })) };
+  const cat = catId === "single" ? single : CATEGORIES.find((c) => c.id === catId) ?? null;
+
+  const stockOf = (partId?: string) => (partId ? parts.find((p) => p.id === partId) : undefined);
+  const outOf = (l: PkgLine) => { const p = stockOf(l.partId); return !!p && total(p) === 0; };
+  const key = (l: PkgLine, i: number) => `${i}:${l.label}`;
+  const included = (l: PkgLine, i: number) => !outOf(l) && !off.has(key(l, i));
+
+  const openPackage = () => {
+    if (!cat) return;
+    // A package starts with everything ticked; a single part starts with nothing ticked.
+    setOff(new Set(cat.startEmpty ? cat.lines.map(key) : []));
+    setStep("package");
+  };
+  const toggle = (l: PkgLine, i: number) => setOff((s) => { const n = new Set(s); const k = key(l, i); if (n.has(k)) n.delete(k); else n.add(k); return n; });
+
+  const chosen = cat ? cat.lines.filter(included) : [];
+  const sum = chosen.reduce((s, l) => s + l.price, 0) + (cat && chosen.length ? cat.service : 0);
+
+  const confirm = () => {
+    if (!cat || !chosen.length) return;
+    const items: Omit<Item, "id" | "approved">[] = chosen.map((l) => {
+      const p = stockOf(l.partId);
+      if (!p) return { label: l.label, kind: "service", price: l.price };
+      const best = [...p.brands].sort((a, b) => b.qty - a.qty)[0];
+      return { label: `${l.label} · ${best.brand}`, kind: "part", price: l.price, partId: p.id, brand: best.brand };
+    });
+    if (cat.service) items.push({ label: `Service charges · ${cat.name}`, kind: "service", price: cat.service });
+    onConfirm(items, cat.id === "single" ? (chosen.length === 1 ? chosen[0].label : `${chosen.length} parts`) : cat.name);
+  };
+
+  const row = "flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#222222]";
+  const confirmBtn = "flex h-14 w-full items-center justify-center rounded-full bg-[#ff4d0a] text-base font-bold text-[#222222] transition hover:bg-[#ff6a2e] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#222222] disabled:bg-[#f4f0ed] disabled:text-[#6e6762]";
+
   return (
-    <div className="absolute inset-0 z-10 flex flex-col justify-end bg-black/40" onClick={onClose}>
-      <div className="max-h-[75%] overflow-hidden rounded-t-3xl bg-[#ffffff] p-5" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Add part or service">
-        <div className="mb-3 flex items-center justify-between">
-          <h3 className="text-[22px] leading-7 font-semibold">Add to this bill</h3>
-          <button onClick={onClose} className="h-12 rounded-full px-3 text-sm font-semibold underline underline-offset-4">Close</button>
-        </div>
-        <p className="mb-3 text-xs text-[#6e6762]">Items stay greyed out until the customer approves on WhatsApp.</p>
-        <div className="no-scrollbar max-h-[46dvh] space-y-2 overflow-y-auto">
-          {parts.map((p) => {
-            const best = [...p.brands].sort((a, b) => b.qty - a.qty)[0];
-            const out = total(p) === 0;
-            return (
-              <button
-                key={p.id}
-                disabled={out}
-                onClick={() => onAdd({ label: `${p.name.replace(/s$/, "")} · ${best.brand}`, kind: "part", price: p.price, partId: p.id, brand: best.brand })}
-                className="flex w-full items-center justify-between rounded-2xl bg-[#f4f0ed] p-3 text-left text-sm transition hover:bg-[#ebe4df] disabled:opacity-40"
-              >
-                <span><span className="block font-semibold">{p.name}</span><span className="text-xs text-[#6e6762]">{total(p)} in stock</span></span>
-                <span className="font-semibold">{inr(p.price)}</span>
-              </button>
-            );
-          })}
-          {extras.map((e) => (
-            <button
-              key={e.label}
-              onClick={() => onAdd({ label: e.label, kind: "service", price: e.price })}
-              className="flex w-full items-center justify-between rounded-2xl bg-[#f4f0ed] p-3 text-left text-sm transition hover:bg-[#ebe4df]"
-            >
-              <span className="font-semibold">{e.label}</span>
-              <span className="font-semibold">{inr(e.price)}</span>
-            </button>
-          ))}
-        </div>
-      </div>
+    <div className="absolute inset-0 z-20 flex flex-col bg-white" role="dialog" aria-label={step === "categories" ? "Categories" : cat?.name}>
+      {step === "categories" ? (
+        <>
+          <ScreenBar title="Categories" sub={`What is ${forJob} here for?`} onBack={onClose} backLabel="Back to the job" />
+          <div role="radiogroup" aria-label="Service category" className="no-scrollbar min-h-0 flex-1 space-y-2 overflow-y-auto px-4 pb-4 min-[400px]:px-6">
+            {[...CATEGORIES, single].map((c) => {
+              const sel = catId === c.id;
+              return (
+                <button key={c.id} role="radio" aria-checked={sel} onClick={() => setCatId(c.id)}
+                  className={`${row} min-h-16 ${sel ? "bg-[#ffd9c9] shadow-[inset_0_0_0_2px_#ff4d0a]" : "bg-[#f4f0ed] hover:bg-[#ebe4df]"}`}>
+                  <span className={`grid size-6 shrink-0 place-items-center rounded-full border-2 ${sel ? "border-[#222222] bg-[#222222] text-[#ff4d0a]" : "border-[#6e6762]"}`}>
+                    {sel && <Icon name="check" className="size-[14px]" />}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-base font-semibold">{c.name}</span>
+                    <span className="block text-xs text-[#4a4542]">{c.id === "single" ? "Pick one or more parts" : `${c.lines.length} items + service charges`}</span>
+                  </span>
+                  {c.id !== "single" && <span className="shrink-0 text-base font-bold">{inr(pkgTotal(c))}</span>}
+                </button>
+              );
+            })}
+          </div>
+          <div className="shrink-0 px-4 pt-2 pb-4 min-[400px]:px-6">
+            <button disabled={!cat} onClick={openPackage} className={confirmBtn}>{cat ? "Confirm" : "Choose a category"}</button>
+          </div>
+        </>
+      ) : cat && (
+        <>
+          <ScreenBar title={cat.name} sub={`For ${forJob} · ${cat.startEmpty ? "tick the parts you used" : "tap to leave an item out"}`} onBack={() => setStep("categories")} backLabel="Back to categories" />
+          <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto px-4 pb-4 min-[400px]:px-6">
+            <div className="space-y-1">
+              {cat.lines.map((l, i) => {
+                const p = stockOf(l.partId), out = outOf(l), on = included(l, i);
+                return (
+                  <button key={key(l, i)} role="checkbox" aria-checked={on} disabled={out} onClick={() => toggle(l, i)}
+                    className={`${row} min-h-14 hover:bg-[#f4f0ed] disabled:cursor-not-allowed`}>
+                    <span className={`grid size-6 shrink-0 place-items-center rounded-md border-2 ${on ? "border-[#222222] bg-[#222222] text-[#ff4d0a]" : "border-[#6e6762]"}`}>
+                      {on && <Icon name="check" className="size-[14px]" />}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className={`block text-base ${on || cat.startEmpty ? "" : "text-[#6e6762] line-through"}`}>{l.label}</span>
+                      {p && <span className={`block text-xs ${out ? "font-semibold text-[#c2200d]" : "text-[#4a4542]"}`}>{out ? "Out of stock" : `${total(p)} in stock`}</span>}
+                    </span>
+                    <span className={`shrink-0 text-base ${on ? "font-semibold" : cat.startEmpty ? "text-[#4a4542]" : "text-[#6e6762] line-through"}`}>{inr(l.price)}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="mt-4 space-y-1 border-t border-black/10 px-4 pt-4">
+              {cat.service > 0 && (
+                <div className="flex min-h-10 items-center justify-between text-base">
+                  <span>Service charges</span><span className="font-semibold">{chosen.length ? inr(cat.service) : inr(0)}</span>
+                </div>
+              )}
+              <div className="flex min-h-12 items-center justify-between">
+                <span className="text-base font-semibold">Total</span>
+                <span className="display text-[28px] leading-9">{inr(sum)}</span>
+              </div>
+            </div>
+            <p className="mt-2 px-4 text-xs text-[#4a4542]">Goes to {job.customer.split(" ")[0]} on WhatsApp. The items stay greyed out on the bill until they approve.</p>
+          </div>
+          <div className="shrink-0 px-4 pt-2 pb-4 min-[400px]:px-6">
+            <button disabled={!chosen.length} onClick={confirm} className={confirmBtn}>{chosen.length ? `Confirm · ${inr(sum)}` : "Tick at least one item"}</button>
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -1068,7 +1173,7 @@ function TeamList({ mechanics, jobs, addMechanic }: { mechanics: Mechanic[]; job
             placeholder="Mechanic name"
             className="h-12 min-w-0 flex-1 rounded-[10px] border border-[#8a837e] bg-white px-4 text-sm outline-none focus:border-[#222222]"
           />
-          <button onClick={submit} className="h-12 rounded-full bg-[#ff4d0a] px-5 text-sm font-semibold text-[#222222] hover:bg-[#e64400]">Add</button>
+          <button onClick={submit} className="h-12 rounded-full bg-[#ff4d0a] px-5 text-sm font-semibold text-[#222222] hover:bg-[#ff6a2e]">Add</button>
         </div>
       ) : (
         <button
