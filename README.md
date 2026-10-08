@@ -42,9 +42,16 @@ There are three bottom tabs: **Stock**, **Jobs** (the default, in the centre) an
 index.html            page shell
 src/main.tsx          React entry
 src/App.tsx           the whole app: state, tabs, sheets (from Figma Make)
-src/index.css         Tailwind + Manrope + base styles
+src/index.css         Tailwind + Inter + base styles
 scripts/inline.mjs    inlines the build into dist/preview.html
 docs/                 Figma Make design notes
 ```
 
-The stack is React 19, Vite and Tailwind 4. The colours are ink `#17211d` and lime `#d9ff5c`, on a warm grey background.
+The stack is React 19, Vite and Tailwind 4.
+
+**Visual design: Wise Design System (2025).** The layout and features are the Figma Make version. The look follows Wise:
+- **Colours:** forest green `#163300` for brand panels and accents, bright green `#9fe870` for primary buttons and active states, near-black `#0e0f0c` text, greys `#454745` and `#6a6c6a`, neutral `#edefeb`.
+- **Shape:** pill buttons and segmented controls, 10px inputs.
+- **Type:** Inter for text, Inter Tight ExtraBold for the garage name, plates and big amounts (a free stand-in for Wise Sans).
+
+The values come from Wise's published brand colours. The Figma kit couldn't be read: the duplicated copy only had the cover page. Once a full copy is shared, swap in the exact variables.
