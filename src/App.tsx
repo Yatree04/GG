@@ -208,13 +208,13 @@ const TODAY = 8;
 
 function Seg({ options, value, onChange }: { options: string[]; value: string; onChange: (v: string) => void }) {
   return (
-    <div className="grid rounded-full bg-[#edefeb] p-1" style={{ gridTemplateColumns: `repeat(${options.length}, 1fr)` }}>
+    <div className="grid rounded-full bg-[#f4f0ed] p-1" style={{ gridTemplateColumns: `repeat(${options.length}, 1fr)` }}>
       {options.map((o) => (
         <button
           key={o}
           onClick={() => onChange(o)}
-          className={`h-9 rounded-full text-[13px] font-semibold transition focus-visible:outline-2 focus-visible:outline-[#163300] ${
-            value === o ? "bg-white text-[#163300] shadow-sm" : "text-[#454745] hover:text-[#163300]"
+          className={`h-9 rounded-full text-[13px] font-semibold transition focus-visible:outline-2 focus-visible:outline-[#222222] ${
+            value === o ? "bg-white text-[#222222] shadow-sm" : "text-[#4a4542] hover:text-[#222222]"
           }`}
         >
           {o}
@@ -302,21 +302,21 @@ export default function App() {
   ];
 
   return (
-    <main className="min-h-dvh bg-[#e8ebe6] text-[#0e0f0c] sm:px-6 sm:py-8">
-      <div className="mx-auto w-full overflow-hidden bg-[#ffffff] shadow-[0_24px_80px_rgba(20,30,26,0.14)] sm:max-w-[430px] sm:rounded-[40px] sm:border sm:border-black/10">
-        <div className="relative flex h-dvh flex-col sm:h-[860px]">
-          <header className="shrink-0 px-6 pt-8 pb-4">
+    <main className="min-h-dvh bg-[#ff4d0a] text-[#1f1f1f] frame:px-4 min-[400px]:px-6 frame:py-8">
+      <div className="mx-auto w-full max-w-[560px] overflow-hidden bg-[#ffffff] shadow-[0_24px_80px_rgba(20,30,26,0.14)] frame:max-w-[430px] frame:rounded-[40px] frame:border frame:border-black/10">
+        <div className="relative flex h-dvh flex-col frame:h-[min(860px,calc(100dvh-4rem-2px))]">
+          <header className="shrink-0 px-4 pt-[max(1.25rem,env(safe-area-inset-top))] pb-3 min-[400px]:px-4 min-[400px]:px-6 frame:pt-8 frame:pb-4">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="display mt-1 text-[#163300] text-[28px] leading-8 tracking-[-0.02em]">Sharma Motors</h1>
+                <h1 className="display mt-1 text-[#222222] text-[28px] leading-8 tracking-[-0.02em]">Sharma Motors</h1>
               </div>
               <button
                 aria-label="Notifications"
-                className="relative grid size-12 place-items-center rounded-full bg-[#edefeb] text-[#163300] transition hover:bg-[#e2e6de] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#163300]"
+                className="relative grid size-12 place-items-center rounded-full bg-[#f4f0ed] text-[#222222] transition hover:bg-[#ebe4df] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#222222]"
                 onClick={() => notify(`${parts.filter((p) => total(p) <= p.reorder).length} parts are low on stock`)}
               >
                 <Icon name="bell" />
-                <span className="absolute top-3 right-3 size-2 rounded-full bg-[#e2553f] ring-2 ring-white" />
+                <span className="absolute top-3 right-3 size-2 rounded-full bg-[#ff4d0a] ring-2 ring-white" />
               </button>
             </div>
           </header>
@@ -335,7 +335,7 @@ export default function App() {
             )}
           </div>
 
-          <nav aria-label="Primary navigation" className="shrink-0 border-t border-black/10 bg-[#ffffff] px-4 pt-2 pb-4">
+          <nav aria-label="Primary navigation" className="shrink-0 border-t border-black/10 bg-[#ffffff] px-4 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
             <div className="grid grid-cols-3">
               {navItems.map(({ label, icon }) => {
                 const active = nav === label;
@@ -345,14 +345,14 @@ export default function App() {
                     key={label}
                     aria-current={active ? "page" : undefined}
                     onClick={() => setNav(label)}
-                    className={`flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-[11px] font-semibold transition focus-visible:outline-2 focus-visible:outline-[#163300] ${
-                      active ? "text-[#163300]" : "text-[#6a6c6a] hover:text-[#163300]"
+                    className={`flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-[11px] font-semibold transition focus-visible:outline-2 focus-visible:outline-[#222222] ${
+                      active ? "text-[#222222]" : "text-[#6e6762] hover:text-[#222222]"
                     }`}
                   >
-                    <span className={`relative grid h-8 w-14 place-items-center rounded-full transition ${active ? "bg-[#9fe870]" : ""}`}>
+                    <span className={`relative grid h-8 w-14 place-items-center rounded-full transition ${active ? "bg-[#ff4d0a]" : ""}`}>
                       <Icon name={icon} />
                       {orders > 0 && (
-                        <span className="absolute -top-1 right-1 grid size-4 place-items-center rounded-full bg-[#163300] text-[9px] text-white">
+                        <span className="absolute -top-1 right-1 grid size-4 place-items-center rounded-full bg-[#222222] text-[9px] text-white">
                           {orders}
                         </span>
                       )}
@@ -366,7 +366,7 @@ export default function App() {
 
           <div
             aria-live="polite"
-            className={`pointer-events-none absolute right-6 bottom-24 left-6 z-20 rounded-[10px] bg-[#163300] px-4 py-3 text-center text-sm font-medium text-white shadow-xl transition-all ${
+            className={`pointer-events-none absolute right-6 bottom-24 left-6 z-20 rounded-[10px] bg-[#222222] px-4 py-3 text-center text-sm font-medium text-white shadow-xl transition-all ${
               notice ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"
             }`}
           >
@@ -407,15 +407,15 @@ function StockTab({ parts, toggleOrder }: { parts: Part[]; toggleOrder: (id: str
   ];
 
   return (
-    <div className="flex h-full flex-col px-6">
-      <label className="relative flex h-12 shrink-0 items-center rounded-full border border-transparent bg-[#edefeb] pr-4 pl-4 focus-within:border-[#163300]">
+    <div className="flex h-full flex-col px-4 min-[400px]:px-6">
+      <label className="relative flex h-12 shrink-0 items-center rounded-full border border-transparent bg-[#f4f0ed] pr-4 pl-4 focus-within:border-[#222222]">
         <span className="sr-only">Search parts</span>
-        <Icon name="search" className="size-5 shrink-0 text-[#454745]" />
+        <Icon name="search" className="size-5 shrink-0 text-[#4a4542]" />
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Search pistons, brake pads, Bosch…"
-          className="h-full min-w-0 flex-1 bg-transparent px-3 text-sm font-medium outline-none placeholder:text-[#6a6c6a]"
+          className="h-full min-w-0 flex-1 bg-transparent px-3 text-sm font-medium outline-none placeholder:text-[#6e6762]"
         />
       </label>
 
@@ -427,20 +427,20 @@ function StockTab({ parts, toggleOrder }: { parts: Part[]; toggleOrder: (id: str
               key={t.key}
               aria-pressed={active}
               onClick={() => setFilter(t.key === "value" ? "all" : t.key)}
-              className={`flex h-[108px] flex-col justify-between rounded-3xl border p-3.5 text-left transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#163300] ${
-                active ? "border-transparent bg-[#9fe870]" : "border-transparent bg-[#edefeb] hover:bg-[#e2e6de]"
+              className={`flex h-24 min-[400px]:h-[108px] flex-col justify-between rounded-3xl border p-3.5 text-left transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#222222] ${
+                active ? "border-transparent bg-[#ff4d0a]" : "border-transparent bg-[#f4f0ed] hover:bg-[#ebe4df]"
               }`}
             >
               <span className="flex items-start justify-between">
-                <span className={`grid size-9 place-items-center rounded-full ${active ? "bg-[#163300]/10" : "bg-white text-[#163300]"}`}>
+                <span className={`grid size-9 place-items-center rounded-full ${active ? "bg-[#222222]/10" : "bg-white text-[#222222]"}`}>
                   <Icon name={t.icon} className="size-5" />
                 </span>
-                <span className={`grid size-9 place-items-center rounded-full ${active ? "bg-[#163300] text-[#9fe870]" : "bg-[#163300] text-white"}`}>
+                <span className={`grid size-9 place-items-center rounded-full ${active ? "bg-[#222222] text-[#ff4d0a]" : "bg-[#222222] text-white"}`}>
                   <Icon name="arrow" className="size-4" />
                 </span>
               </span>
               <span>
-                <span className={`block text-xs font-semibold ${active ? "text-[#163300]/70" : "text-[#454745]"}`}>{t.label}</span>
+                <span className={`block text-xs font-semibold ${active ? "text-[#222222]/70" : "text-[#4a4542]"}`}>{t.label}</span>
                 <span className="block text-2xl leading-7 font-bold tracking-[-0.03em]">{t.value}</span>
               </span>
             </button>
@@ -453,42 +453,42 @@ function StockTab({ parts, toggleOrder }: { parts: Part[]; toggleOrder: (id: str
       </div>
 
       <div className="no-scrollbar mt-2 min-h-0 flex-1 space-y-2 overflow-y-auto pb-3">
-        {list.length === 0 && <p className="py-8 text-center text-sm text-[#6a6c6a]">Nothing here{q ? ` for “${q}”` : ""}.</p>}
+        {list.length === 0 && <p className="py-8 text-center text-sm text-[#6e6762]">Nothing here{q ? ` for “${q}”` : ""}.</p>}
         {list.map((p) => {
           const t = total(p);
           const isLow = t <= p.reorder;
           const isOpen = open === p.id;
           return (
-            <div key={p.id} className="rounded-2xl bg-[#edefeb]">
+            <div key={p.id} className="rounded-2xl bg-[#f4f0ed]">
               <button
                 aria-expanded={isOpen}
                 onClick={() => setOpen(isOpen ? null : p.id)}
-                className="flex w-full items-center gap-3 p-3 text-left focus-visible:outline-2 focus-visible:outline-[#163300]"
+                className="flex w-full items-center gap-3 p-3 text-left focus-visible:outline-2 focus-visible:outline-[#222222]"
               >
-                <span className={`grid size-12 shrink-0 place-items-center rounded-full text-lg font-bold ${isLow ? "bg-[#ffebc2]" : "bg-white"}`}>
+                <span className={`grid size-12 shrink-0 place-items-center rounded-full text-lg font-bold ${isLow ? "bg-[#ffd9c9]" : "bg-white"}`}>
                   {t}
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block text-sm font-semibold">{p.name}</span>
-                  <span className="mt-0.5 block text-xs text-[#6a6c6a]">
+                  <span className="mt-0.5 block text-xs text-[#6e6762]">
                     {p.brands.length} brand{p.brands.length > 1 ? "s" : ""} · {isLow ? `low, reorder at ${p.reorder}` : inr(p.price) + " each"}
                   </span>
                 </span>
-                {p.toOrder && <span className="rounded-full bg-[#9fe870] px-2 py-1 text-[10px] font-bold">TO ORDER</span>}
+                {p.toOrder && <span className="rounded-full bg-[#ff4d0a] px-2 py-1 text-[10px] font-bold">TO ORDER</span>}
                 <Icon name="chevron" className={`size-4 transition ${isOpen ? "rotate-90" : ""}`} />
               </button>
               {isOpen && (
                 <div className="border-t border-black/10 px-3 pt-2 pb-3">
                   {p.brands.map((b) => (
                     <div key={b.brand} className="flex items-center justify-between py-1.5 text-sm">
-                      <span className="text-[#454745]">{b.brand}</span>
+                      <span className="text-[#4a4542]">{b.brand}</span>
                       <span className="font-semibold">{b.qty}</span>
                     </div>
                   ))}
                   <button
                     onClick={() => toggleOrder(p.id)}
-                    className={`mt-2 h-10 w-full rounded-full text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#163300] ${
-                      p.toOrder ? "bg-white text-[#163300] hover:bg-[#f4f5f2]" : "bg-[#9fe870] text-[#163300] hover:bg-[#80e142]"
+                    className={`mt-2 h-10 w-full rounded-full text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#222222] ${
+                      p.toOrder ? "bg-white text-[#222222] hover:bg-[#faf7f5]" : "bg-[#ff4d0a] text-[#222222] hover:bg-[#e64400]"
                     }`}
                   >
                     {p.toOrder ? "Remove from order list" : "Mark to order"}
@@ -532,10 +532,10 @@ function JobsTab({
 
   return (
     <div className="relative flex h-full flex-col">
-      <div className="mb-3 flex shrink-0 items-center justify-end gap-2 px-6">
+      <div className="mb-3 flex shrink-0 items-center justify-end gap-2 px-4 min-[400px]:px-6">
         <button
           onClick={() => setScan(true)}
-          className="flex h-9 items-center gap-2 rounded-full bg-[#9fe870] px-4 text-sm font-semibold text-[#163300] transition hover:bg-[#80e142] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#163300]"
+          className="flex h-9 items-center gap-2 rounded-full bg-[#ff4d0a] px-4 text-sm font-semibold text-[#222222] transition hover:bg-[#e64400] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#222222]"
         >
           <Icon name="scan" className="size-4" /> Scan plate
         </button>
@@ -543,7 +543,7 @@ function JobsTab({
           aria-label={mini ? "Show card stack" : "Minimise to overview"}
           aria-pressed={mini}
           onClick={() => setMini(!mini)}
-          className="grid size-9 place-items-center rounded-full bg-[#edefeb] text-[#163300] transition hover:bg-[#e2e6de] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#163300]"
+          className="grid size-9 place-items-center rounded-full bg-[#f4f0ed] text-[#222222] transition hover:bg-[#ebe4df] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#222222]"
         >
           <Icon name={mini ? "wrench" : "grid"} className="size-4" />
         </button>
@@ -558,7 +558,7 @@ function JobsTab({
           }}
         />
       ) : active.length === 0 ? (
-        <p className="px-6 py-16 text-center text-sm text-[#6a6c6a]">All jobs are done. New tickets appear here.</p>
+        <p className="px-4 min-[400px]:px-6 py-16 text-center text-sm text-[#6e6762]">All jobs are done. New tickets appear here.</p>
       ) : (
         <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto pb-4">
           <div
@@ -570,7 +570,7 @@ function JobsTab({
             className="no-scrollbar flex snap-x snap-mandatory items-start overflow-x-auto"
           >
             {active.map((j) => (
-              <div key={j.id} className="w-full shrink-0 snap-center px-6">
+              <div key={j.id} className="w-full shrink-0 snap-center px-4 min-[400px]:px-6">
                 <BillCard job={j} />
               </div>
             ))}
@@ -578,54 +578,54 @@ function JobsTab({
 
           <div className="mt-3 flex justify-center gap-1.5" aria-hidden="true">
             {active.map((j, i) => (
-              <span key={j.id} className={`h-1.5 rounded-full transition-all ${i === idx ? "w-5 bg-[#163300]" : "w-1.5 bg-black/20"}`} />
+              <span key={j.id} className={`h-1.5 rounded-full transition-all ${i === idx ? "w-5 bg-[#222222]" : "w-1.5 bg-black/20"}`} />
             ))}
           </div>
 
           {cur && (
-            <div className="space-y-4 px-6 pt-4">
+            <div className="space-y-4 px-4 min-[400px]:px-6 pt-4">
               <button
                 onClick={() => setSheet(true)}
-                className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#edefeb] text-[#163300] text-sm font-semibold transition hover:bg-[#e2e6de] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#163300]"
+                className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#f4f0ed] text-[#222222] text-sm font-semibold transition hover:bg-[#ebe4df] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#222222]"
               >
                 <Icon name="plus" className="size-4" /> Add part or service
               </button>
 
-              <div className="space-y-1 px-1 text-sm text-[#6a6c6a]">
+              <div className="space-y-1 px-1 text-sm text-[#6e6762]">
                 <div className="flex justify-between"><span>Labour charges</span><span>{inr(cur.labour)}</span></div>
                 <div className="flex justify-between"><span>Tool charges</span><span>{inr(cur.tool)}</span></div>
               </div>
 
-              <section className="rounded-2xl bg-[#edefeb] p-4">
-                <p className="text-sm font-semibold text-[#454745]">Customer</p>
+              <section className="rounded-2xl bg-[#f4f0ed] p-4">
+                <p className="text-sm font-semibold text-[#4a4542]">Customer</p>
                 <p className="mt-1 font-semibold">{cur.customer}</p>
-                <p className="text-sm text-[#6a6c6a]">{cur.phone} · Mechanic {cur.mechanic}</p>
+                <p className="text-sm text-[#6e6762]">{cur.phone} · Mechanic {cur.mechanic}</p>
               </section>
 
               <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => notify(`Calling ${cur.customer}…`)}
-                  className="flex h-12 items-center justify-center gap-2 rounded-full bg-[#edefeb] text-[#163300] text-sm font-semibold transition hover:bg-[#e2e6de] focus-visible:outline-2 focus-visible:outline-[#163300]"
+                  className="flex h-12 items-center justify-center gap-2 rounded-full bg-[#f4f0ed] text-[#222222] text-sm font-semibold transition hover:bg-[#ebe4df] focus-visible:outline-2 focus-visible:outline-[#222222]"
                 >
                   <Icon name="phone" className="size-4" /> Call
                 </button>
                 <button
                   disabled={cur.notified}
                   onClick={() => notifyCustomer(cur.id)}
-                  className="flex h-12 items-center justify-center gap-2 rounded-full bg-[#edefeb] text-[#163300] text-sm font-semibold transition hover:bg-[#e2e6de] focus-visible:outline-2 focus-visible:outline-[#163300] disabled:text-[#6a6c6a]"
+                  className="flex h-12 items-center justify-center gap-2 rounded-full bg-[#f4f0ed] text-[#222222] text-sm font-semibold transition hover:bg-[#ebe4df] focus-visible:outline-2 focus-visible:outline-[#222222] disabled:text-[#6e6762]"
                 >
                   <Icon name={cur.notified ? "check" : "send"} className="size-4" /> {cur.notified ? "Notified" : "Notify (optional)"}
                 </button>
               </div>
 
               <div>
-                <p className="mb-2 text-sm font-semibold text-[#454745]">Payment received via</p>
+                <p className="mb-2 text-sm font-semibold text-[#4a4542]">Payment received via</p>
                 <Seg options={["UPI", "Cash"]} value={pay} onChange={setPay} />
               </div>
               <button
                 disabled={cur.items.some((i) => !i.approved)}
                 onClick={() => { markDone(cur.id, pay); setIdx(0); }}
-                className="h-14 w-full rounded-full bg-[#9fe870] text-sm font-bold text-[#163300] transition hover:bg-[#80e142] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#163300] disabled:bg-black/10 disabled:text-[#6a6c6a]"
+                className="h-14 w-full rounded-full bg-[#ff4d0a] text-sm font-bold text-[#222222] transition hover:bg-[#e64400] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#222222] disabled:bg-black/10 disabled:text-[#6e6762]"
               >
                 {cur.items.some((i) => !i.approved) ? "Waiting for customer approval" : `Mark as done · ${inr(billTotal(cur))}`}
               </button>
@@ -696,10 +696,10 @@ function ScanSheet({ jobs, onClose, onMatch }: { jobs: Job[]; onClose: () => voi
           <button onClick={onClose} className="h-9 rounded-full px-3 text-sm font-semibold underline underline-offset-4">Close</button>
         </div>
 
-        <div className="relative grid h-40 place-items-center overflow-hidden rounded-2xl bg-[#163300]">
-          <div className="relative grid h-16 w-64 place-items-center rounded-lg border-2 border-[#9fe870]">
+        <div className="relative grid h-40 place-items-center overflow-hidden rounded-2xl bg-[#222222]">
+          <div className="relative grid h-16 w-64 place-items-center rounded-lg border-2 border-[#ff4d0a]">
             <span className="text-lg font-bold tracking-widest text-white/80">{scanning ? "READING…" : text || "— — — —"}</span>
-            {scanning && <span className="absolute inset-x-0 h-0.5 animate-[scanline_1.4s_ease-in-out_infinite] bg-[#9fe870]" />}
+            {scanning && <span className="absolute inset-x-0 h-0.5 animate-[scanline_1.4s_ease-in-out_infinite] bg-[#ff4d0a]" />}
           </div>
           <p className="absolute bottom-2 text-[11px] text-white/50">Align the plate inside the frame</p>
         </div>
@@ -707,7 +707,7 @@ function ScanSheet({ jobs, onClose, onMatch }: { jobs: Job[]; onClose: () => voi
         <button
           onClick={scan}
           disabled={scanning}
-          className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#9fe870] text-sm font-bold text-[#163300] transition hover:bg-[#80e142] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#163300] disabled:opacity-60"
+          className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#ff4d0a] text-sm font-bold text-[#222222] transition hover:bg-[#e64400] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#222222] disabled:opacity-60"
         >
           <Icon name="scan" className="size-4" /> {scanning ? "Scanning…" : "Scan plate"}
         </button>
@@ -719,11 +719,11 @@ function ScanSheet({ jobs, onClose, onMatch }: { jobs: Job[]; onClose: () => voi
             onKeyDown={(e) => e.key === "Enter" && lookup(text)}
             placeholder="or type MH 12 QR 4821"
             aria-label="Number plate"
-            className="h-12 min-w-0 flex-1 rounded-[10px] border border-[#868685] bg-white px-4 text-sm font-semibold tracking-wide uppercase outline-none placeholder:font-medium placeholder:tracking-normal placeholder:normal-case focus:border-[#163300]"
+            className="h-12 min-w-0 flex-1 rounded-[10px] border border-[#8a837e] bg-white px-4 text-sm font-semibold tracking-wide uppercase outline-none placeholder:font-medium placeholder:tracking-normal placeholder:normal-case focus:border-[#222222]"
           />
-          <button onClick={() => lookup(text)} className="h-12 rounded-full bg-[#edefeb] text-[#163300] px-4 text-sm font-semibold hover:bg-[#e2e6de]">Match</button>
+          <button onClick={() => lookup(text)} className="h-12 rounded-full bg-[#f4f0ed] text-[#222222] px-4 text-sm font-semibold hover:bg-[#ebe4df]">Match</button>
         </div>
-        {error && <p role="alert" className="mt-2 text-sm font-medium text-[#a8200d]">{error}</p>}
+        {error && <p role="alert" className="mt-2 text-sm font-medium text-[#c2200d]">{error}</p>}
       </div>
     </div>
   );
@@ -731,18 +731,18 @@ function ScanSheet({ jobs, onClose, onMatch }: { jobs: Job[]; onClose: () => voi
 
 function MiniGrid({ jobs, onOpen }: { jobs: Job[]; onOpen: (j: Job) => void }) {
   return (
-    <div className="no-scrollbar grid min-h-0 flex-1 auto-rows-min grid-cols-2 content-start gap-2 overflow-y-auto px-6 pb-3">
+    <div className="no-scrollbar grid min-h-0 flex-1 auto-rows-min grid-cols-2 content-start gap-2 overflow-y-auto px-4 min-[400px]:px-6 pb-3">
       {jobs.map((j) => (
         <button
           key={j.id}
           disabled={j.done}
           onClick={() => onOpen(j)}
-          className={`flex min-h-[148px] flex-col justify-between rounded-3xl border p-3.5 text-left transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#163300] ${
-            j.done ? "border-transparent bg-[#edefeb] opacity-55" : j.stage === "In work" ? "border-transparent bg-[#163300] text-white" : "border-transparent bg-[#edefeb] hover:bg-[#e2e6de]"
+          className={`flex min-h-[148px] flex-col justify-between rounded-3xl border p-3.5 text-left transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#222222] ${
+            j.done ? "border-transparent bg-[#f4f0ed] opacity-55" : j.stage === "In work" ? "border-transparent bg-[#222222] text-white" : "border-transparent bg-[#f4f0ed] hover:bg-[#ebe4df]"
           }`}
         >
           <span>
-            <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-bold ${j.stage === "In work" ? "bg-[#9fe870] text-[#163300]" : "bg-white text-[#454745]"}`}>{j.stage}</span>
+            <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-bold ${j.stage === "In work" ? "bg-[#ff4d0a] text-[#222222]" : "bg-white text-[#4a4542]"}`}>{j.stage}</span>
             <span className="mt-2 block text-sm leading-5 font-bold tracking-wide">{j.plate}</span>
             <span className="block truncate text-xs opacity-60">{j.vehicle.split(" · ")[0]}</span>
           </span>
@@ -769,11 +769,11 @@ function BillCard({ job }: { job: Job }) {
     </div>
   );
   return (
-    <section className="rounded-3xl bg-[#163300] p-5 text-white">
+    <section className="rounded-3xl bg-[#222222] p-5 text-white">
       <div className="flex items-start justify-between">
         <div>
-          <span className="inline-flex items-center gap-2 rounded-full bg-[#9fe870] px-3 py-1 text-xs font-bold text-[#163300]">
-            <span className="size-1.5 rounded-full bg-[#163300]" />
+          <span className="inline-flex items-center gap-2 rounded-full bg-[#ff4d0a] px-3 py-1 text-xs font-bold text-[#222222]">
+            <span className="size-1.5 rounded-full bg-[#222222]" />
             {job.stage.toUpperCase()}
           </span>
           <h2 className="display mt-3 text-[26px] leading-8 tracking-[0.01em]">{job.plate}</h2>
@@ -794,7 +794,7 @@ function BillCard({ job }: { job: Job }) {
 
       <div className="mt-3 flex items-end justify-between border-t border-white/10 pt-3">
         <p className="text-sm font-semibold text-white/60">Estimate</p>
-        <p className="display text-[26px] tracking-[-0.02em] text-[#9fe870]">{inr(billTotal(job))}</p>
+        <p className="display text-[26px] tracking-[-0.02em] text-[#ff4d0a]">{inr(billTotal(job))}</p>
       </div>
     </section>
   );
@@ -819,7 +819,7 @@ function AddSheet({
           <h3 className="text-lg font-semibold">Add to this bill</h3>
           <button onClick={onClose} className="h-9 rounded-full px-3 text-sm font-semibold underline underline-offset-4">Close</button>
         </div>
-        <p className="mb-3 text-xs text-[#6a6c6a]">Items stay greyed out until the customer approves on WhatsApp.</p>
+        <p className="mb-3 text-xs text-[#6e6762]">Items stay greyed out until the customer approves on WhatsApp.</p>
         <div className="no-scrollbar max-h-[46dvh] space-y-2 overflow-y-auto">
           {parts.map((p) => {
             const best = [...p.brands].sort((a, b) => b.qty - a.qty)[0];
@@ -829,9 +829,9 @@ function AddSheet({
                 key={p.id}
                 disabled={out}
                 onClick={() => onAdd({ label: `${p.name.replace(/s$/, "")} · ${best.brand}`, kind: "part", price: p.price, partId: p.id, brand: best.brand })}
-                className="flex w-full items-center justify-between rounded-2xl bg-[#edefeb] p-3 text-left text-sm transition hover:bg-[#e2e6de] disabled:opacity-40"
+                className="flex w-full items-center justify-between rounded-2xl bg-[#f4f0ed] p-3 text-left text-sm transition hover:bg-[#ebe4df] disabled:opacity-40"
               >
-                <span><span className="block font-semibold">{p.name}</span><span className="text-xs text-[#6a6c6a]">{total(p)} in stock</span></span>
+                <span><span className="block font-semibold">{p.name}</span><span className="text-xs text-[#6e6762]">{total(p)} in stock</span></span>
                 <span className="font-semibold">{inr(p.price)}</span>
               </button>
             );
@@ -840,7 +840,7 @@ function AddSheet({
             <button
               key={e.label}
               onClick={() => onAdd({ label: e.label, kind: "service", price: e.price })}
-              className="flex w-full items-center justify-between rounded-2xl bg-[#edefeb] p-3 text-left text-sm transition hover:bg-[#e2e6de]"
+              className="flex w-full items-center justify-between rounded-2xl bg-[#f4f0ed] p-3 text-left text-sm transition hover:bg-[#ebe4df]"
             >
               <span className="font-semibold">{e.label}</span>
               <span className="font-semibold">{inr(e.price)}</span>
@@ -909,44 +909,44 @@ function GarageTab({
         aria-label={`${d} October`}
         aria-pressed={sel}
         onClick={() => pick(d)}
-        className={`flex flex-col items-center rounded-2xl border transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#163300] ${
+        className={`flex flex-col items-center rounded-2xl border transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#222222] ${
           big ? "px-1 pt-2.5 pb-2" : "h-11 justify-center"
-        } ${sel ? "border-transparent bg-[#163300] text-white" : d === TODAY ? "border-transparent bg-[#9fe870]" : "border-transparent bg-[#edefeb] hover:bg-[#e2e6de]"} ${d > TODAY && !sel ? "text-[#6a6c6a]" : ""}`}
+        } ${sel ? "border-transparent bg-[#222222] text-white" : d === TODAY ? "border-transparent bg-[#ff4d0a]" : "border-transparent bg-[#f4f0ed] hover:bg-[#ebe4df]"} ${d > TODAY && !sel ? "text-[#6e6762]" : ""}`}
       >
         <span className={`${big ? "text-lg leading-6" : "text-sm"} font-bold`}>{d}</span>
-        {big && <span className={`text-[11px] font-semibold ${sel ? "text-white/70" : "text-[#454745]"}`}>{WEEKDAYS[weekday(d)]}</span>}
+        {big && <span className={`text-[11px] font-semibold ${sel ? "text-white/70" : "text-[#4a4542]"}`}>{WEEKDAYS[weekday(d)]}</span>}
         <span className={`flex h-1.5 gap-1 ${big ? "mt-1.5" : "mt-0.5"}`}>
-          {data.earn > 0 && <span className={`size-1.5 rounded-full ${sel ? "bg-[#9fe870]" : "bg-[#2f5711]"}`} />}
-          {restockDays.includes(d) && <span className="size-1.5 rounded-full bg-[#e2553f]" />}
+          {data.earn > 0 && <span className={`size-1.5 rounded-full ${sel ? "bg-[#ff4d0a]" : "bg-[#222222]"}`} />}
+          {restockDays.includes(d) && <span className="size-1.5 rounded-full bg-[#ff4d0a]" />}
         </span>
       </button>
     );
   };
 
   return (
-    <div className="flex h-full flex-col px-6">
+    <div className="flex h-full flex-col px-4 min-[400px]:px-6">
       <div className="shrink-0">
         <div className="mb-2 flex items-center justify-between">
           <button
             onClick={() => setPicked(false)}
-            className="text-left focus-visible:outline-2 focus-visible:outline-[#163300]"
+            className="text-left focus-visible:outline-2 focus-visible:outline-[#222222]"
             aria-label="Show whole range"
           >
-            <span className="block text-xs font-semibold text-[#454745] capitalize">{scope}</span>
+            <span className="block text-xs font-semibold text-[#4a4542] capitalize">{scope}</span>
             <span className="block text-lg font-semibold tracking-[-0.02em]">{label}</span>
           </button>
           <div className="flex items-center gap-1">
             {!expanded && (
               <>
-                <button aria-label="Previous week" onClick={() => shift(-7)} className="grid size-9 rotate-180 place-items-center rounded-full bg-[#edefeb] text-[#163300]"><Icon name="chevron" className="size-4" /></button>
-                <button aria-label="Next week" onClick={() => shift(7)} className="grid size-9 place-items-center rounded-full bg-[#edefeb] text-[#163300]"><Icon name="chevron" className="size-4" /></button>
+                <button aria-label="Previous week" onClick={() => shift(-7)} className="grid size-9 rotate-180 place-items-center rounded-full bg-[#f4f0ed] text-[#222222]"><Icon name="chevron" className="size-4" /></button>
+                <button aria-label="Next week" onClick={() => shift(7)} className="grid size-9 place-items-center rounded-full bg-[#f4f0ed] text-[#222222]"><Icon name="chevron" className="size-4" /></button>
               </>
             )}
             <button
               aria-label={expanded ? "Collapse to week" : "Expand to full month"}
               aria-expanded={expanded}
               onClick={() => { setExpanded(!expanded); setPicked(false); }}
-              className="grid size-9 place-items-center rounded-full bg-[#163300] text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#163300]"
+              className="grid size-9 place-items-center rounded-full bg-[#222222] text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#222222]"
             >
               <Icon name="chevron" className={`size-4 transition ${expanded ? "-rotate-90" : "rotate-90"}`} />
             </button>
@@ -955,7 +955,7 @@ function GarageTab({
 
         {expanded ? (
           <div>
-            <div className="mb-1 grid grid-cols-7 gap-1 text-center text-[11px] font-semibold text-[#6a6c6a]">
+            <div className="mb-1 grid grid-cols-7 gap-1 text-center text-[11px] font-semibold text-[#6e6762]">
               {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => <span key={i}>{d}</span>)}
             </div>
             <div className="grid grid-cols-7 gap-1">
@@ -969,9 +969,9 @@ function GarageTab({
       </div>
 
       <div className="no-scrollbar mt-3 min-h-0 flex-1 space-y-3 overflow-y-auto pb-3">
-        <section className="rounded-3xl bg-[#163300] p-4 text-white">
+        <section className="rounded-3xl bg-[#222222] p-4 text-white">
           <p className="text-sm font-semibold text-white/60">Profit · {label}</p>
-          <p className="display mt-1 text-3xl tracking-[-0.02em] text-[#9fe870]">{inr(profit)}</p>
+          <p className="display mt-1 text-3xl tracking-[-0.02em] text-[#ff4d0a]">{inr(profit)}</p>
           <div className="mt-3 grid grid-cols-4 gap-2 text-sm">
             {([["In", inr(earned)], ["Parts", inr(partsCost)], ["Wages", inr(wages)], ["Jobs", String(jobCount)]] as const).map(([l, v]) => (
               <div key={l} className="rounded-xl bg-white/10 p-2.5">
@@ -985,19 +985,19 @@ function GarageTab({
         <section>
           <h2 className="mb-2 text-sm font-semibold">Bills & services</h2>
           {rangeBills.length === 0 ? (
-            <p className="rounded-2xl bg-[#edefeb] p-4 text-sm text-[#6a6c6a]">No bills logged for {label}.</p>
+            <p className="rounded-2xl bg-[#f4f0ed] p-4 text-sm text-[#6e6762]">No bills logged for {label}.</p>
           ) : (
             <div className="space-y-2">
               {rangeBills.map((b) => (
-                <div key={b.id} className="flex items-center gap-3 rounded-2xl bg-[#edefeb] p-3">
-                  <span className="grid size-12 shrink-0 place-items-center rounded-full bg-white text-[#163300]"><Icon name="wrench" /></span>
+                <div key={b.id} className="flex items-center gap-3 rounded-2xl bg-[#f4f0ed] p-3">
+                  <span className="grid size-12 shrink-0 place-items-center rounded-full bg-white text-[#222222]"><Icon name="wrench" /></span>
                   <span className="min-w-0 flex-1">
                     <span className="block text-sm font-semibold">{b.plate}</span>
-                    <span className="block truncate text-xs text-[#6a6c6a]">{b.vehicle} · {b.summary}</span>
+                    <span className="block truncate text-xs text-[#6e6762]">{b.vehicle} · {b.summary}</span>
                   </span>
                   <span className="text-right">
                     <span className="block text-sm font-semibold">{inr(b.total)}</span>
-                    <span className="block text-[11px] text-[#6a6c6a]">{b.day} Oct · {b.method}</span>
+                    <span className="block text-[11px] text-[#6e6762]">{b.day} Oct · {b.method}</span>
                   </span>
                 </div>
               ))}
@@ -1005,17 +1005,17 @@ function GarageTab({
           )}
         </section>
 
-        <section className="rounded-2xl bg-[#edefeb] p-4">
+        <section className="rounded-2xl bg-[#f4f0ed] p-4">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold">Restock</h2>
-            <span className="text-xs text-[#6a6c6a]">{rangeRestock.length ? `Due ${rangeRestock.join(", ")} Oct` : "No restock day"}</span>
+            <span className="text-xs text-[#6e6762]">{rangeRestock.length ? `Due ${rangeRestock.join(", ")} Oct` : "No restock day"}</span>
           </div>
           {toOrder.length === 0 ? (
-            <p className="mt-2 text-sm text-[#6a6c6a]">Nothing marked. Low: {parts.filter((p) => total(p) <= p.reorder).map((p) => p.name).slice(0, 3).join(", ")}.</p>
+            <p className="mt-2 text-sm text-[#6e6762]">Nothing marked. Low: {parts.filter((p) => total(p) <= p.reorder).map((p) => p.name).slice(0, 3).join(", ")}.</p>
           ) : (
             toOrder.map((p) => (
               <div key={p.id} className="mt-2 flex items-center justify-between border-t border-black/10 pt-2">
-                <span className="text-sm"><span className="font-semibold">{p.name}</span> <span className="text-[#6a6c6a]">· {total(p)} left</span></span>
+                <span className="text-sm"><span className="font-semibold">{p.name}</span> <span className="text-[#6e6762]">· {total(p)} left</span></span>
                 <button onClick={() => toggleOrder(p.id)} className="text-xs font-semibold underline underline-offset-4">Ordered</button>
               </div>
             ))
@@ -1045,15 +1045,15 @@ function TeamList({ mechanics, jobs, addMechanic }: { mechanics: Mechanic[]; job
       {mechanics.map((m) => {
         const j = jobs.find((x) => x.mechanic === m.name && !x.done);
         return (
-          <div key={m.id} className="flex items-center gap-3 rounded-2xl bg-[#edefeb] p-3">
-            <span className="grid size-12 shrink-0 place-items-center rounded-full bg-white text-[#163300] text-base font-bold">{m.name[0]}</span>
+          <div key={m.id} className="flex items-center gap-3 rounded-2xl bg-[#f4f0ed] p-3">
+            <span className="grid size-12 shrink-0 place-items-center rounded-full bg-white text-[#222222] text-base font-bold">{m.name[0]}</span>
             <span className="min-w-0 flex-1">
               <span className="block text-sm font-semibold">{m.name}</span>
-              <span className="block truncate text-xs text-[#6a6c6a]">{m.role} · {j ? j.plate : "No job"}</span>
+              <span className="block truncate text-xs text-[#6e6762]">{m.role} · {j ? j.plate : "No job"}</span>
             </span>
             <span className="text-right">
               <span className="block text-sm font-semibold">{inr(m.wage)}</span>
-              <span className={`block text-[11px] font-semibold ${j ? "text-[#2f5711]" : "text-[#6a6c6a]"}`}>{j ? "On job" : "Free"}</span>
+              <span className={`block text-[11px] font-semibold ${j ? "text-[#222222]" : "text-[#6e6762]"}`}>{j ? "On job" : "Free"}</span>
             </span>
           </div>
         );
@@ -1066,14 +1066,14 @@ function TeamList({ mechanics, jobs, addMechanic }: { mechanics: Mechanic[]; job
             onChange={(e) => setName(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && submit()}
             placeholder="Mechanic name"
-            className="h-12 min-w-0 flex-1 rounded-[10px] border border-[#868685] bg-white px-4 text-sm outline-none focus:border-[#163300]"
+            className="h-12 min-w-0 flex-1 rounded-[10px] border border-[#8a837e] bg-white px-4 text-sm outline-none focus:border-[#222222]"
           />
-          <button onClick={submit} className="h-12 rounded-full bg-[#9fe870] px-5 text-sm font-semibold text-[#163300] hover:bg-[#80e142]">Add</button>
+          <button onClick={submit} className="h-12 rounded-full bg-[#ff4d0a] px-5 text-sm font-semibold text-[#222222] hover:bg-[#e64400]">Add</button>
         </div>
       ) : (
         <button
           onClick={() => setAdding(true)}
-          className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#edefeb] text-[#163300] text-sm font-semibold transition hover:bg-[#e2e6de] focus-visible:outline-2 focus-visible:outline-[#163300]"
+          className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#f4f0ed] text-[#222222] text-sm font-semibold transition hover:bg-[#ebe4df] focus-visible:outline-2 focus-visible:outline-[#222222]"
         >
           <Icon name="users" className="size-4" /> Add mechanic
         </button>

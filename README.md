@@ -42,21 +42,21 @@ There are three bottom tabs: **Stock**, **Jobs** (the default, in the centre) an
 index.html            page shell
 src/main.tsx          React entry
 src/App.tsx           the whole app: state, tabs, sheets (from Figma Make)
-src/index.css         Tailwind + Inter + base styles
+src/index.css         Tailwind + Anek + base styles, frame breakpoint
 scripts/inline.mjs    inlines the build into dist/preview.html
 docs/                 Figma Make design notes
 ```
 
 The stack is React 19, Vite and Tailwind 4.
 
-**Visual design: Wise Design System (2025).** The layout and features are the Figma Make version. The look follows Wise:
-- **Colours:** forest green `#163300` for brand panels and accents, bright green `#9fe870` for primary buttons and active states, near-black `#0e0f0c` text, greys `#454745` and `#6a6c6a`, neutral `#edefeb`.
-- **Elements:**
-  - Cards, list rows, calendar days and sheet options use Wise neutral fills instead of white boxes with borders.
-  - Icon buttons and avatars are neutral circles. Secondary buttons are neutral pills with forest text.
-  - Search is a filled pill, and text inputs use Wise's outlined field.
-  - Section labels are in sentence case.
-- **Shape:** pill buttons and segmented controls, 10px inputs.
-- **Type:** Inter for text, Inter Tight ExtraBold for the garage name, plates and big amounts (a free stand-in for Wise Sans).
+**Visual design.** The layout and features are the Figma Make version. The look:
+- **Colours** (from the team's reference image): near-black `#222222` for dark panels and text accents, orange `#ff4d0a` for primary buttons, active states and amounts, and peach `#ffd9c9` for low-stock highlights.
+- **Neutrals:** a warm neutral `#f4f0ed` for cards and fills, warm greys `#4a4542` and `#6e6762` for secondary text.
+- **Contrast:** buttons are orange with near-black text, which passes WCAG AA (4.8:1). White on orange doesn't (3.3:1).
+- **Type:** Anek Latin everywhere. The garage name, plates and big amounts use it at its widest and heaviest (width 125, weight 800). Anek Devanagari matches it, for Hindi and Marathi later.
+- **Elements:** pill buttons and segmented controls, filled cards and list rows, neutral icon circles, filled search pill, outlined inputs.
 
-The values come from Wise's published brand colours. The Figma kit couldn't be read: the duplicated copy only had the cover page. Once a full copy is shared, swap in the exact variables.
+**Responsive:**
+- Phones (any size, any orientation) get the app full screen, with tighter margins below 400px wide and room for the notch and home bar.
+- Laptops and desktops get a phone frame that shrinks to fit the window height, so the bottom bar is never cut off.
+- Landscape phones and short windows stay full screen, capped at 560px wide.
