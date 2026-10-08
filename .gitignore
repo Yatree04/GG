@@ -1,3 +1,8 @@
-dist/
-.DS_Store
 node_modules/
+dist/
+build/
+.cache/
+.env*
+.vite/
+*.tsbuildinfo
+*.log
