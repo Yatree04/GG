@@ -51,6 +51,11 @@ The stack is React 19, Vite and Tailwind 4.
 
 **Visual design: Wise Design System (2025).** The layout and features are the Figma Make version. The look follows Wise:
 - **Colours:** forest green `#163300` for brand panels and accents, bright green `#9fe870` for primary buttons and active states, near-black `#0e0f0c` text, greys `#454745` and `#6a6c6a`, neutral `#edefeb`.
+- **Elements:**
+  - Cards, list rows, calendar days and sheet options use Wise neutral fills instead of white boxes with borders.
+  - Icon buttons and avatars are neutral circles. Secondary buttons are neutral pills with forest text.
+  - Search is a filled pill, and text inputs use Wise's outlined field.
+  - Section labels are in sentence case.
 - **Shape:** pill buttons and segmented controls, 10px inputs.
 - **Type:** Inter for text, Inter Tight ExtraBold for the garage name, plates and big amounts (a free stand-in for Wise Sans).
 
