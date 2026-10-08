@@ -56,6 +56,18 @@ The stack is React 19, Vite and Tailwind 4.
 - **Type:** Anek Latin everywhere. The garage name, plates and big amounts use it at its widest and heaviest (width 125, weight 800). Anek Devanagari matches it, for Hindi and Marathi later.
 - **Elements:** pill buttons and segmented controls, filled cards and list rows, neutral icon circles, filled search pill, outlined inputs.
 
+**Sizes (Material Design 3) and readability (WCAG AA):**
+
+| Element | Size |
+|---|---|
+| Type scale | 11 (label small, the minimum), 12 (label), 14 (body), 16 (title medium), 22 (title large), 28 (headline medium: garage name, plate, estimate), 32 (headline large: profit) |
+| Icons | 24px standalone (nav, icon buttons, list chevrons), 18px inside buttons and chips |
+| Touch targets | 48px for buttons and icon buttons. Segmented controls are 40px segments in a 48px track |
+| Navigation bar | 64×32 active pill, 24px icons, 12px labels, 16px badges with 11px numbers |
+
+- **Contrast:** every piece of readable text is at least 4.5:1 against its background. Faded text on dark cards is at least 60% white. Text on orange is near-black.
+- **Corners:** cards keep the larger, softer corners from the reference image rather than Material's 12px.
+
 **Responsive:**
 - Phones (any size, any orientation) get the app full screen, with tighter margins below 400px wide and room for the notch and home bar.
 - Laptops and desktops get a phone frame that shrinks to fit the window height, so the bottom bar is never cut off.

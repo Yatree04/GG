@@ -18,7 +18,7 @@ type IconName =
   | "users"
   | "wrench";
 
-function Icon({ name, className = "size-5" }: { name: IconName; className?: string }) {
+function Icon({ name, className = "size-6" }: { name: IconName; className?: string }) {
   const paths: Record<IconName, ReactNode> = {
     arrow: <path d="M7 17 17 7M8 7h9v9" />,
     bell: (
@@ -213,7 +213,7 @@ function Seg({ options, value, onChange }: { options: string[]; value: string; o
         <button
           key={o}
           onClick={() => onChange(o)}
-          className={`h-9 rounded-full text-[13px] font-semibold transition focus-visible:outline-2 focus-visible:outline-[#222222] ${
+          className={`h-10 rounded-full text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-[#222222] ${
             value === o ? "bg-white text-[#222222] shadow-sm" : "text-[#4a4542] hover:text-[#222222]"
           }`}
         >
@@ -308,7 +308,7 @@ export default function App() {
           <header className="shrink-0 px-4 pt-[max(1.25rem,env(safe-area-inset-top))] pb-3 min-[400px]:px-4 min-[400px]:px-6 frame:pt-8 frame:pb-4">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="display mt-1 text-[#222222] text-[28px] leading-8 tracking-[-0.02em]">Sharma Motors</h1>
+                <h1 className="display mt-1 text-[#222222] text-[28px] leading-9 tracking-[-0.02em]">Sharma Motors</h1>
               </div>
               <button
                 aria-label="Notifications"
@@ -345,14 +345,14 @@ export default function App() {
                     key={label}
                     aria-current={active ? "page" : undefined}
                     onClick={() => setNav(label)}
-                    className={`flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-[11px] font-semibold transition focus-visible:outline-2 focus-visible:outline-[#222222] ${
+                    className={`flex min-h-16 flex-col items-center justify-center gap-1 rounded-xl text-xs font-semibold transition focus-visible:outline-2 focus-visible:outline-[#222222] ${
                       active ? "text-[#222222]" : "text-[#6e6762] hover:text-[#222222]"
                     }`}
                   >
-                    <span className={`relative grid h-8 w-14 place-items-center rounded-full transition ${active ? "bg-[#ff4d0a]" : ""}`}>
+                    <span className={`relative grid h-8 w-16 place-items-center rounded-full transition ${active ? "bg-[#ff4d0a]" : ""}`}>
                       <Icon name={icon} />
                       {orders > 0 && (
-                        <span className="absolute -top-1 right-1 grid size-4 place-items-center rounded-full bg-[#222222] text-[9px] text-white">
+                        <span className="absolute -top-1 right-2 grid h-4 min-w-4 place-items-center rounded-full bg-[#222222] px-1 text-[11px] leading-none font-semibold text-white">
                           {orders}
                         </span>
                       )}
@@ -410,7 +410,7 @@ function StockTab({ parts, toggleOrder }: { parts: Part[]; toggleOrder: (id: str
     <div className="flex h-full flex-col px-4 min-[400px]:px-6">
       <label className="relative flex h-12 shrink-0 items-center rounded-full border border-transparent bg-[#f4f0ed] pr-4 pl-4 focus-within:border-[#222222]">
         <span className="sr-only">Search parts</span>
-        <Icon name="search" className="size-5 shrink-0 text-[#4a4542]" />
+        <Icon name="search" className="size-6 shrink-0 text-[#4a4542]" />
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
@@ -432,15 +432,15 @@ function StockTab({ parts, toggleOrder }: { parts: Part[]; toggleOrder: (id: str
               }`}
             >
               <span className="flex items-start justify-between">
-                <span className={`grid size-9 place-items-center rounded-full ${active ? "bg-[#222222]/10" : "bg-white text-[#222222]"}`}>
-                  <Icon name={t.icon} className="size-5" />
+                <span className={`grid size-10 place-items-center rounded-full ${active ? "bg-[#222222]/10" : "bg-white text-[#222222]"}`}>
+                  <Icon name={t.icon} className="size-6" />
                 </span>
-                <span className={`grid size-9 place-items-center rounded-full ${active ? "bg-[#222222] text-[#ff4d0a]" : "bg-[#222222] text-white"}`}>
-                  <Icon name="arrow" className="size-4" />
+                <span className={`grid size-10 place-items-center rounded-full ${active ? "bg-[#222222] text-[#ff4d0a]" : "bg-[#222222] text-white"}`}>
+                  <Icon name="arrow" className="size-[18px]" />
                 </span>
               </span>
               <span>
-                <span className={`block text-xs font-semibold ${active ? "text-[#222222]/70" : "text-[#4a4542]"}`}>{t.label}</span>
+                <span className={`block text-xs font-semibold ${active ? "text-[#222222]" : "text-[#4a4542]"}`}>{t.label}</span>
                 <span className="block text-2xl leading-7 font-bold tracking-[-0.03em]">{t.value}</span>
               </span>
             </button>
@@ -449,7 +449,7 @@ function StockTab({ parts, toggleOrder }: { parts: Part[]; toggleOrder: (id: str
       </div>
 
       <div className="mt-4 flex shrink-0 items-baseline justify-between">
-        <h2 className="text-lg font-semibold tracking-[-0.02em]">Stock overview</h2>
+        <h2 className="text-[22px] leading-7 font-semibold tracking-[-0.01em]">Stock overview</h2>
       </div>
 
       <div className="no-scrollbar mt-2 min-h-0 flex-1 space-y-2 overflow-y-auto pb-3">
@@ -465,7 +465,7 @@ function StockTab({ parts, toggleOrder }: { parts: Part[]; toggleOrder: (id: str
                 onClick={() => setOpen(isOpen ? null : p.id)}
                 className="flex w-full items-center gap-3 p-3 text-left focus-visible:outline-2 focus-visible:outline-[#222222]"
               >
-                <span className={`grid size-12 shrink-0 place-items-center rounded-full text-lg font-bold ${isLow ? "bg-[#ffd9c9]" : "bg-white"}`}>
+                <span className={`grid size-12 shrink-0 place-items-center rounded-full text-base font-bold ${isLow ? "bg-[#ffd9c9]" : "bg-white"}`}>
                   {t}
                 </span>
                 <span className="min-w-0 flex-1">
@@ -474,8 +474,8 @@ function StockTab({ parts, toggleOrder }: { parts: Part[]; toggleOrder: (id: str
                     {p.brands.length} brand{p.brands.length > 1 ? "s" : ""} · {isLow ? `low, reorder at ${p.reorder}` : inr(p.price) + " each"}
                   </span>
                 </span>
-                {p.toOrder && <span className="rounded-full bg-[#ff4d0a] px-2 py-1 text-[10px] font-bold">TO ORDER</span>}
-                <Icon name="chevron" className={`size-4 transition ${isOpen ? "rotate-90" : ""}`} />
+                {p.toOrder && <span className="rounded-full bg-[#ff4d0a] px-2 py-1 text-[11px] font-bold">TO ORDER</span>}
+                <Icon name="chevron" className={`size-6 transition ${isOpen ? "rotate-90" : ""}`} />
               </button>
               {isOpen && (
                 <div className="border-t border-black/10 px-3 pt-2 pb-3">
@@ -487,7 +487,7 @@ function StockTab({ parts, toggleOrder }: { parts: Part[]; toggleOrder: (id: str
                   ))}
                   <button
                     onClick={() => toggleOrder(p.id)}
-                    className={`mt-2 h-10 w-full rounded-full text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#222222] ${
+                    className={`mt-2 h-12 w-full rounded-full text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#222222] ${
                       p.toOrder ? "bg-white text-[#222222] hover:bg-[#faf7f5]" : "bg-[#ff4d0a] text-[#222222] hover:bg-[#e64400]"
                     }`}
                   >
@@ -535,17 +535,17 @@ function JobsTab({
       <div className="mb-3 flex shrink-0 items-center justify-end gap-2 px-4 min-[400px]:px-6">
         <button
           onClick={() => setScan(true)}
-          className="flex h-9 items-center gap-2 rounded-full bg-[#ff4d0a] px-4 text-sm font-semibold text-[#222222] transition hover:bg-[#e64400] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#222222]"
+          className="flex h-12 items-center gap-2 rounded-full bg-[#ff4d0a] px-5 text-sm font-semibold text-[#222222] transition hover:bg-[#e64400] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#222222]"
         >
-          <Icon name="scan" className="size-4" /> Scan plate
+          <Icon name="scan" className="size-[18px]" /> Scan plate
         </button>
         <button
           aria-label={mini ? "Show card stack" : "Minimise to overview"}
           aria-pressed={mini}
           onClick={() => setMini(!mini)}
-          className="grid size-9 place-items-center rounded-full bg-[#f4f0ed] text-[#222222] transition hover:bg-[#ebe4df] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#222222]"
+          className="grid size-12 place-items-center rounded-full bg-[#f4f0ed] text-[#222222] transition hover:bg-[#ebe4df] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#222222]"
         >
-          <Icon name={mini ? "wrench" : "grid"} className="size-4" />
+          <Icon name={mini ? "wrench" : "grid"} className="size-[18px]" />
         </button>
       </div>
 
@@ -588,7 +588,7 @@ function JobsTab({
                 onClick={() => setSheet(true)}
                 className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#f4f0ed] text-[#222222] text-sm font-semibold transition hover:bg-[#ebe4df] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#222222]"
               >
-                <Icon name="plus" className="size-4" /> Add part or service
+                <Icon name="plus" className="size-[18px]" /> Add part or service
               </button>
 
               <div className="space-y-1 px-1 text-sm text-[#6e6762]">
@@ -607,14 +607,14 @@ function JobsTab({
                   onClick={() => notify(`Calling ${cur.customer}…`)}
                   className="flex h-12 items-center justify-center gap-2 rounded-full bg-[#f4f0ed] text-[#222222] text-sm font-semibold transition hover:bg-[#ebe4df] focus-visible:outline-2 focus-visible:outline-[#222222]"
                 >
-                  <Icon name="phone" className="size-4" /> Call
+                  <Icon name="phone" className="size-[18px]" /> Call
                 </button>
                 <button
                   disabled={cur.notified}
                   onClick={() => notifyCustomer(cur.id)}
                   className="flex h-12 items-center justify-center gap-2 rounded-full bg-[#f4f0ed] text-[#222222] text-sm font-semibold transition hover:bg-[#ebe4df] focus-visible:outline-2 focus-visible:outline-[#222222] disabled:text-[#6e6762]"
                 >
-                  <Icon name={cur.notified ? "check" : "send"} className="size-4" /> {cur.notified ? "Notified" : "Notify (optional)"}
+                  <Icon name={cur.notified ? "check" : "send"} className="size-[18px]" /> {cur.notified ? "Notified" : "Notify (optional)"}
                 </button>
               </div>
 
@@ -692,16 +692,16 @@ function ScanSheet({ jobs, onClose, onMatch }: { jobs: Job[]; onClose: () => voi
     <div className="absolute inset-0 z-10 flex flex-col justify-end bg-black/40" onClick={onClose}>
       <div className="rounded-t-3xl bg-[#ffffff] p-5" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Scan number plate">
         <div className="mb-3 flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Scan number plate</h3>
-          <button onClick={onClose} className="h-9 rounded-full px-3 text-sm font-semibold underline underline-offset-4">Close</button>
+          <h3 className="text-[22px] leading-7 font-semibold">Scan number plate</h3>
+          <button onClick={onClose} className="h-12 rounded-full px-3 text-sm font-semibold underline underline-offset-4">Close</button>
         </div>
 
         <div className="relative grid h-40 place-items-center overflow-hidden rounded-2xl bg-[#222222]">
           <div className="relative grid h-16 w-64 place-items-center rounded-lg border-2 border-[#ff4d0a]">
-            <span className="text-lg font-bold tracking-widest text-white/80">{scanning ? "READING…" : text || "— — — —"}</span>
+            <span className="text-[22px] font-bold tracking-widest text-white/90">{scanning ? "READING…" : text || "— — — —"}</span>
             {scanning && <span className="absolute inset-x-0 h-0.5 animate-[scanline_1.4s_ease-in-out_infinite] bg-[#ff4d0a]" />}
           </div>
-          <p className="absolute bottom-2 text-[11px] text-white/50">Align the plate inside the frame</p>
+          <p className="absolute bottom-2 text-[11px] text-white/65">Align the plate inside the frame</p>
         </div>
 
         <button
@@ -709,7 +709,7 @@ function ScanSheet({ jobs, onClose, onMatch }: { jobs: Job[]; onClose: () => voi
           disabled={scanning}
           className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#ff4d0a] text-sm font-bold text-[#222222] transition hover:bg-[#e64400] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#222222] disabled:opacity-60"
         >
-          <Icon name="scan" className="size-4" /> {scanning ? "Scanning…" : "Scan plate"}
+          <Icon name="scan" className="size-[18px]" /> {scanning ? "Scanning…" : "Scan plate"}
         </button>
 
         <div className="mt-3 flex gap-2">
@@ -738,17 +738,17 @@ function MiniGrid({ jobs, onOpen }: { jobs: Job[]; onOpen: (j: Job) => void }) {
           disabled={j.done}
           onClick={() => onOpen(j)}
           className={`flex min-h-[148px] flex-col justify-between rounded-3xl border p-3.5 text-left transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#222222] ${
-            j.done ? "border-transparent bg-[#f4f0ed] opacity-55" : j.stage === "In work" ? "border-transparent bg-[#222222] text-white" : "border-transparent bg-[#f4f0ed] hover:bg-[#ebe4df]"
+            j.done ? "border-transparent bg-[#f4f0ed] text-[#4a4542]" : j.stage === "In work" ? "border-transparent bg-[#222222] text-white" : "border-transparent bg-[#f4f0ed] hover:bg-[#ebe4df]"
           }`}
         >
           <span>
-            <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-bold ${j.stage === "In work" ? "bg-[#ff4d0a] text-[#222222]" : "bg-white text-[#4a4542]"}`}>{j.stage}</span>
+            <span className={`inline-block rounded-full px-2 py-0.5 text-[11px] font-bold ${j.stage === "In work" ? "bg-[#ff4d0a] text-[#222222]" : "bg-white text-[#4a4542]"}`}>{j.stage}</span>
             <span className="mt-2 block text-sm leading-5 font-bold tracking-wide">{j.plate}</span>
-            <span className="block truncate text-xs opacity-60">{j.vehicle.split(" · ")[0]}</span>
+            <span className="block truncate text-xs opacity-75">{j.vehicle.split(" · ")[0]}</span>
           </span>
           <span>
-            <span className="block text-[11px] opacity-60">{j.done ? "Billed" : `Ready ${j.ready}`}</span>
-            <span className="block text-xl leading-6 font-bold tracking-[-0.02em]">{inr(billTotal(j))}</span>
+            <span className="block text-[11px] opacity-75">{j.done ? "Billed" : `Ready ${j.ready}`}</span>
+            <span className="block text-[22px] leading-7 font-bold tracking-[-0.02em]">{inr(billTotal(j))}</span>
           </span>
         </button>
       ))}
@@ -760,10 +760,10 @@ function BillCard({ job }: { job: Job }) {
   const services = job.items.filter((i) => i.kind === "service");
   const partItems = job.items.filter((i) => i.kind === "part");
   const row = (i: Item) => (
-    <div key={i.id} className={`flex items-start justify-between gap-3 py-1.5 text-sm ${i.approved ? "" : "text-white/35"}`}>
+    <div key={i.id} className={`flex items-start justify-between gap-3 py-1.5 text-sm ${i.approved ? "" : "text-white/60"}`}>
       <span className="min-w-0">
         {i.label}
-        {!i.approved && <span className="ml-2 rounded-full border border-white/25 px-2 py-0.5 text-[10px] font-semibold text-white/60">Awaiting customer</span>}
+        {!i.approved && <span className="ml-2 rounded-full border border-white/40 px-2 py-0.5 text-[11px] font-semibold text-white/75">Awaiting customer</span>}
       </span>
       <span className="shrink-0 font-semibold">{inr(i.price)}</span>
     </div>
@@ -776,25 +776,25 @@ function BillCard({ job }: { job: Job }) {
             <span className="size-1.5 rounded-full bg-[#222222]" />
             {job.stage.toUpperCase()}
           </span>
-          <h2 className="display mt-3 text-[26px] leading-8 tracking-[0.01em]">{job.plate}</h2>
+          <h2 className="display mt-3 text-[28px] leading-9 tracking-[0.01em]">{job.plate}</h2>
           <p className="mt-0.5 text-sm text-white/60">{job.vehicle}</p>
         </div>
         <div className="text-right">
-          <p className="text-xs text-white/50">Ready by</p>
+          <p className="text-xs text-white/65">Ready by</p>
           <p className="mt-0.5 text-sm font-semibold">{job.ready}</p>
         </div>
       </div>
 
       <div className="mt-5 border-t border-white/10 pt-3">
         <p className="text-sm font-semibold text-white/60">Services</p>
-        {services.length ? services.map(row) : <p className="py-1.5 text-sm text-white/35">No services yet</p>}
+        {services.length ? services.map(row) : <p className="py-1.5 text-sm text-white/60">No services yet</p>}
         <p className="mt-3 text-sm font-semibold text-white/60">Parts</p>
-        {partItems.length ? partItems.map(row) : <p className="py-1.5 text-sm text-white/35">No parts yet</p>}
+        {partItems.length ? partItems.map(row) : <p className="py-1.5 text-sm text-white/60">No parts yet</p>}
       </div>
 
       <div className="mt-3 flex items-end justify-between border-t border-white/10 pt-3">
         <p className="text-sm font-semibold text-white/60">Estimate</p>
-        <p className="display text-[26px] tracking-[-0.02em] text-[#ff4d0a]">{inr(billTotal(job))}</p>
+        <p className="display text-[28px] leading-9 tracking-[-0.02em] text-[#ff4d0a]">{inr(billTotal(job))}</p>
       </div>
     </section>
   );
@@ -816,8 +816,8 @@ function AddSheet({
     <div className="absolute inset-0 z-10 flex flex-col justify-end bg-black/40" onClick={onClose}>
       <div className="max-h-[75%] overflow-hidden rounded-t-3xl bg-[#ffffff] p-5" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Add part or service">
         <div className="mb-3 flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Add to this bill</h3>
-          <button onClick={onClose} className="h-9 rounded-full px-3 text-sm font-semibold underline underline-offset-4">Close</button>
+          <h3 className="text-[22px] leading-7 font-semibold">Add to this bill</h3>
+          <button onClick={onClose} className="h-12 rounded-full px-3 text-sm font-semibold underline underline-offset-4">Close</button>
         </div>
         <p className="mb-3 text-xs text-[#6e6762]">Items stay greyed out until the customer approves on WhatsApp.</p>
         <div className="no-scrollbar max-h-[46dvh] space-y-2 overflow-y-auto">
@@ -913,8 +913,8 @@ function GarageTab({
           big ? "px-1 pt-2.5 pb-2" : "h-11 justify-center"
         } ${sel ? "border-transparent bg-[#222222] text-white" : d === TODAY ? "border-transparent bg-[#ff4d0a]" : "border-transparent bg-[#f4f0ed] hover:bg-[#ebe4df]"} ${d > TODAY && !sel ? "text-[#6e6762]" : ""}`}
       >
-        <span className={`${big ? "text-lg leading-6" : "text-sm"} font-bold`}>{d}</span>
-        {big && <span className={`text-[11px] font-semibold ${sel ? "text-white/70" : "text-[#4a4542]"}`}>{WEEKDAYS[weekday(d)]}</span>}
+        <span className={`${big ? "text-base leading-6" : "text-sm"} font-bold`}>{d}</span>
+        {big && <span className={`text-[11px] font-semibold ${sel ? "text-white/75" : d === TODAY ? "text-[#222222]" : "text-[#4a4542]"}`}>{WEEKDAYS[weekday(d)]}</span>}
         <span className={`flex h-1.5 gap-1 ${big ? "mt-1.5" : "mt-0.5"}`}>
           {data.earn > 0 && <span className={`size-1.5 rounded-full ${sel ? "bg-[#ff4d0a]" : "bg-[#222222]"}`} />}
           {restockDays.includes(d) && <span className="size-1.5 rounded-full bg-[#ff4d0a]" />}
@@ -933,22 +933,22 @@ function GarageTab({
             aria-label="Show whole range"
           >
             <span className="block text-xs font-semibold text-[#4a4542] capitalize">{scope}</span>
-            <span className="block text-lg font-semibold tracking-[-0.02em]">{label}</span>
+            <span className="block text-[22px] leading-7 font-semibold tracking-[-0.01em]">{label}</span>
           </button>
           <div className="flex items-center gap-1">
             {!expanded && (
               <>
-                <button aria-label="Previous week" onClick={() => shift(-7)} className="grid size-9 rotate-180 place-items-center rounded-full bg-[#f4f0ed] text-[#222222]"><Icon name="chevron" className="size-4" /></button>
-                <button aria-label="Next week" onClick={() => shift(7)} className="grid size-9 place-items-center rounded-full bg-[#f4f0ed] text-[#222222]"><Icon name="chevron" className="size-4" /></button>
+                <button aria-label="Previous week" onClick={() => shift(-7)} className="grid size-12 rotate-180 place-items-center rounded-full bg-[#f4f0ed] text-[#222222]"><Icon name="chevron" className="size-6" /></button>
+                <button aria-label="Next week" onClick={() => shift(7)} className="grid size-12 place-items-center rounded-full bg-[#f4f0ed] text-[#222222]"><Icon name="chevron" className="size-6" /></button>
               </>
             )}
             <button
               aria-label={expanded ? "Collapse to week" : "Expand to full month"}
               aria-expanded={expanded}
               onClick={() => { setExpanded(!expanded); setPicked(false); }}
-              className="grid size-9 place-items-center rounded-full bg-[#222222] text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#222222]"
+              className="grid size-12 place-items-center rounded-full bg-[#222222] text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#222222]"
             >
-              <Icon name="chevron" className={`size-4 transition ${expanded ? "-rotate-90" : "rotate-90"}`} />
+              <Icon name="chevron" className={`size-6 transition ${expanded ? "-rotate-90" : "rotate-90"}`} />
             </button>
           </div>
         </div>
@@ -971,12 +971,12 @@ function GarageTab({
       <div className="no-scrollbar mt-3 min-h-0 flex-1 space-y-3 overflow-y-auto pb-3">
         <section className="rounded-3xl bg-[#222222] p-4 text-white">
           <p className="text-sm font-semibold text-white/60">Profit · {label}</p>
-          <p className="display mt-1 text-3xl tracking-[-0.02em] text-[#ff4d0a]">{inr(profit)}</p>
+          <p className="display mt-1 text-[32px] leading-10 tracking-[-0.02em] text-[#ff4d0a]">{inr(profit)}</p>
           <div className="mt-3 grid grid-cols-4 gap-2 text-sm">
             {([["In", inr(earned)], ["Parts", inr(partsCost)], ["Wages", inr(wages)], ["Jobs", String(jobCount)]] as const).map(([l, v]) => (
               <div key={l} className="rounded-xl bg-white/10 p-2.5">
-                <p className="text-[11px] text-white/55">{l}</p>
-                <p className="mt-0.5 text-[13px] font-semibold">{v}</p>
+                <p className="text-[11px] text-white/65">{l}</p>
+                <p className="mt-0.5 text-sm font-semibold">{v}</p>
               </div>
             ))}
           </div>
@@ -1075,7 +1075,7 @@ function TeamList({ mechanics, jobs, addMechanic }: { mechanics: Mechanic[]; job
           onClick={() => setAdding(true)}
           className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#f4f0ed] text-[#222222] text-sm font-semibold transition hover:bg-[#ebe4df] focus-visible:outline-2 focus-visible:outline-[#222222]"
         >
-          <Icon name="users" className="size-4" /> Add mechanic
+          <Icon name="users" className="size-[18px]" /> Add mechanic
         </button>
       )}
     </div>
