@@ -1,12 +1,22 @@
-@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Anek+Devanagari:wght@400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Anek+Latin:wght@400;500;600;700;800&display=swap");
 @import "tailwindcss";
+
+@theme {
+  --shadow-m1: 0 1px 2px rgba(34, 34, 34, 0.14), 0 1px 3px 1px rgba(34, 34, 34, 0.08);
+  --shadow-m2: 0 1px 2px rgba(34, 34, 34, 0.16), 0 2px 6px 2px rgba(34, 34, 34, 0.1);
+  --shadow-m3: 0 1px 3px rgba(34, 34, 34, 0.18), 0 4px 8px 3px rgba(34, 34, 34, 0.12);
+  --shadow-m4: 0 2px 3px rgba(34, 34, 34, 0.18), 0 6px 10px 4px rgba(34, 34, 34, 0.12);
+  --shadow-m5: 0 4px 4px rgba(34, 34, 34, 0.18), 0 8px 12px 6px rgba(34, 34, 34, 0.12);
+  --shadow-nav: 0 -1px 3px rgba(34, 34, 34, 0.1), 0 -4px 12px rgba(34, 34, 34, 0.06);
+}
 
 :root {
   font-family:
-    "Manrope", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Anek Latin", "Anek Devanagari", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", sans-serif;
-  color: #17211d;
-  background: #e9e9e4;
+  color: #222;
+  background: #ebe6e2;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 }
